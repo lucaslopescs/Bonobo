@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "nodemon": "^3.1.7",
+    "sequelize": "^6.37.4",
+    "sequelize-cli": "^6.6.2"
+  }
+}
