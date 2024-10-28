@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.1"
+  },
+  "name": "bonobo",
+  "version": "1.0.0",
+  "description": "Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo Bonobo  hello",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
