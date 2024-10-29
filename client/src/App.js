@@ -1,9 +1,27 @@
 import logo from './logo.svg';
 import './App.css';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 function App() {
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    // Call the backend API
+    axios.get('http://localhost:3000')
+      .then(response => {
+        setMessage(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  }, []);
   return (
     <div className="App">
+      <div>
+      <h1>Event Manager</h1>
+      <p>{message}</p>
+    </div>
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
@@ -21,5 +39,7 @@ function App() {
     </div>
   );
 }
+
+
 
 export default App;
