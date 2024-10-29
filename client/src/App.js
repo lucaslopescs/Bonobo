@@ -1,5 +1,6 @@
 import './App.css';
 import React, { useEffect, useState } from 'react';
+import Calendar from './Calendar'; 
 import axios from 'axios';
 
 function App() {
@@ -15,9 +16,13 @@ function App() {
         console.error('Error fetching data:', error);
       });
   }, []);
-  return<div className="App"></div>;
+
+  return (
+    <div className="App">
+      <h1>{message}</h1> 
+      <Calendar /> 
+    </div>
+  );
 }
-
-
 
 export default App;
