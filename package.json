@@ -6,8 +6,8 @@
     "axios": "^1.7.7",
     "concurrently": "^9.0.1",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "nodemon": "^3.1.7",
     "sequelize": "^6.37.4",
     "sequelize-cli": "^6.6.2"
   },
@@ -17,14 +17,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "react-scripts start",
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "node server/index.js",
     "build": "react-scripts build",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "client": "npm start --prefix client"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "nodemon": "^3.1.7"
-  }
+  "license": "ISC"
 }
