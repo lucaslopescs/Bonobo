@@ -1,7 +1,7 @@
 // server.js
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -19,4 +19,5 @@ const cors = require('cors');
 
 // Enable CORS
 app.use(cors());
+
 
