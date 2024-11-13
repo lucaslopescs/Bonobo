@@ -2,6 +2,7 @@ import './App.css';
 import React, { useEffect, useState } from 'react';
 import Calendar from './Calendar'; 
 import axios from 'axios';
+import Banner from './Banner.js';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -20,6 +21,7 @@ function App() {
   return (
     <div className="App">
       <h1>{message}</h1> 
+      <Banner />
       <Calendar /> 
     </div>
   );

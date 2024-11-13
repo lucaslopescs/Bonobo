@@ -23,6 +23,16 @@ function Calendar() {
         eventClick={(info) => {
           alert(`Event: ${info.event.title}`);
         }}
+        headerToolbar={{
+          left: 'title',
+          //center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay',
+        }} 
+        footerToolbar={{
+          left: 'prev', 
+          right: 'next',
+        }} 
+        height = "auto" //automatically adjust height      
       />
     </div>
   );

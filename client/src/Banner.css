@@ -1,0 +1,42 @@
+/* Banner.css */
+.banner {
+    display: flex;
+    justify-content: space-between; /* Distribute items across the screen */
+    align-items: center; /* Center items vertically */
+    padding: 10px 20px; /* Add padding to the header */
+    background-color: #333; /* Dark background color */
+    color: white; /* White text */
+  }
+  
+  .banner-left, .banner-center, .banner-right {
+    display: flex;
+    align-items: center; /* Center the elements vertically */
+    flex-wrap: nowrap; /* Stop from wrapping vertically*/
+  }
+  
+  .home-button, .account-button {
+    background-color: #444; /* Slightly lighter background for buttons */
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    margin: 0 10px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .home-button:hover, .account-button:hover {
+    background-color: #555; /* Darker on hover */
+  }
+  
+  .search-bar {
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 200px;
+  }
+  
+  .search-bar:focus {
+    outline: none;
+    border-color: #888;
+  }
+  
