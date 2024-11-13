@@ -54,3 +54,19 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+//Schema for login 
+const newSchema=new mongoose.Schema({
+  email:{
+    type:String,
+    required:true
+  },
+  password:{
+    type:String,
+    required:true
+  }
+})
+
+const collection = mongoose.model("collecction", newSchema)
+
+module.exports=collection

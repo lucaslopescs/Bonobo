@@ -1,45 +1,50 @@
 //verify does not work
 
 //variables to test verify
+import React, {useEffect, useState} from "react"
+
 let userInput = "";
 let passInput = "";
 let correctUser = "test";
 let correctPass = "password";
 
-function SignInButton() {
-  return (
-    <button onClick={verify}>Login</button>
-  );
-}
+function Login(){
 
-function UsernameBox(){
-  return([
-  <label for="uname">Username: </label>,
-  userInput = <input type="text" id="uname" name="uname" placeholder="Enter username"></input>]
-  );
-}
-function PasswordBox(){
-  return([
-  <label for="pword">Password: </label>,
-  passInput = <input type="text" id="pword" name="pword" placeholder="Enter password"></input>]
-  );
-}
 
-function verify(){
-  console.log(userInput);
-  console.log(passInput);
- /**  if(userInput == correctUser){
-    if(passInput == correctPass){
-      return console.log("logging in");
-    }
-    else{
-      return console.log("wrong password");
-    }
+  const [email, setEmail]=useState('')
+  const [password, setPassword]=useState('')
+
+  async function submit(e){
+      e.preventDefault();
+
+      try{
+          await axios.post("http://localhost:8000/",{
+          email,password
+          })
+
+      }
+
+      catch{
+          console.log(e)
+
+      }
   }
-  else{ 
-    return console.log("wrong user");
-  } */
-} 
+
+
+
+  return (
+      <div className = "Login">
+          <h1>Login</h1>
+
+          <form action="POST">
+              <input type = "email" onChange={(e)=>{setEmail(e.target.value)}} placeholder="Email" name="" id= "" />
+              <input type = "password" onChange={(e)=>{setPassword(e.target.value)}} placeholder="Password" name="" id= "" />
+              <input type="submit" onClick={submit} />
+
+          </form>
+      </div>
+  )
+}
 
 
 function App() {
