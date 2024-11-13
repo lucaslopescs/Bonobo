@@ -1,7 +1,6 @@
-
 import './App.css';
 import React, { useEffect, useState } from 'react';
-import Calendar from './Calendar';
+import Calendar from './calendar';
 import axios from 'axios';
 
 function App() {
