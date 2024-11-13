@@ -4,47 +4,43 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-dotenv.config();  // Load environment variables
+const jwt = require('jsonwebtoken');
+const User = require('./User');
+const Event = require('./Event'); // Import Event model
+const checkRole = require('./middleware/roleMiddleware'); // Import role middleware
 
-// MongoDB URI
-const dbURI = process.env.MONGODB_URI || 'mongodb+srv://Bonobo:BonoboBonobo@cluster27349.cp3yc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster27349';
+dotenv.config();
 
-if (!dbURI) {
-  console.error('Error: MONGODB_URI is not defined in environment variables');
-  process.exit(1);
+// Express setup
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(express.json());
+app.use(cors());
+
+// Middleware for authentication
+function authenticateToken(req, res, next) {
+  const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
+  if (!token) return res.status(401).send('Access denied');
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) return res.status(403).send('Invalid token');
+    req.user = user;
+    next();
+  });
 }
-
-// Set Mongoose client options
-const clientOptions = { 
-  serverApi: { 
-    version: '1', 
-    strict: true, 
-    deprecationErrors: true 
-  } 
-};
-
-// Connect to MongoDB
-async function run() {
-  try {
-    // Use dbURI instead of uri
-    await mongoose.connect(dbURI, clientOptions);
-    console.log("Successfully connected to MongoDB!");
-  } catch (err) {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);  // Exit the process if the connection fails
-  }
-}
-
-// Connect to user.js
-
-const User = require('./User'); // Import the User model
 
 // Register route
 app.post('/register', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
-    const newUser = new User({ username, password: hashedPassword });
+    const { username, password, role } = req.body;
+
+    if (!['Student', 'Faculty'].includes(role)) {
+      return res.status(400).send('Invalid role provided');
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ username, password: hashedPassword, role });
     await newUser.save();
     res.status(201).send('User registered successfully');
   } catch (error) {
@@ -58,8 +54,14 @@ app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
+
     if (user && await bcrypt.compare(password, user.password)) {
-      res.status(200).send('Login successful');
+      const accessToken = jwt.sign(
+        { username: user.username, role: user.role },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: '1h' }
+      );
+      res.status(200).json({ accessToken });
     } else {
       res.status(401).send('Invalid credentials');
     }
@@ -69,22 +71,52 @@ app.post('/login', async (req, res) => {
   }
 });
 
+// Faculty creates an event
+app.post('/events', authenticateToken, checkRole('Faculty'), async (req, res) => {
+  try {
+    const { title, date } = req.body;
+    const event = new Event({
+      title,
+      date,
+      faculty: req.user._id,
+    });
+    await event.save();
+    res.status(201).send('Event created successfully');
+  } catch (error) {
+    console.error('Error creating event:', error);
+    res.status(500).send('Error creating event');
+  }
+});
 
+// Student registers for an event
+app.post('/events/:eventId/register', authenticateToken, checkRole('Student'), async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).send('Event not found');
 
-// Run the connection function
-run().catch(console.dir);
+    if (event.registeredStudents.includes(req.user._id)) {
+      return res.status(400).send('You are already registered for this event');
+    }
 
-// Express setup
-const app = express();
-const PORT = process.env.PORT || 3001;
+    event.registeredStudents.push(req.user._id);
+    await event.save();
+    res.status(200).send('Successfully registered for the event');
+  } catch (error) {
+    console.error('Error registering for event:', error);
+    res.status(500).send('Error registering for event');
+  }
+});
 
-// Middleware
-app.use(express.json());
-app.use(cors());
-
-// Basic route
-app.get('/', (req, res) => {
-  res.send('School Event Manager API');
+// Get all events (accessible to all authenticated users)
+app.get('/events', authenticateToken, async (req, res) => {
+  try {
+    const events = await Event.find().populate('faculty', 'username');
+    res.status(200).json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).send('Error fetching events');
+  }
 });
 
 // Start server

@@ -1,3 +1,4 @@
+// App.js
 
 import './App.css';
 import React, { useEffect, useState } from 'react';
@@ -9,6 +10,10 @@ function App() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState('');
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState('');
 
   useEffect(() => {
     // Call the backend API
@@ -23,7 +28,7 @@ function App() {
 
   const handleRegister = async () => {
     try {
-      await axios.post('http://localhost:3001/register', { username, password });
+      await axios.post('http://localhost:3001/register', { username, password, role: 'Faculty' }); // Adjusted to allow role input
       setIsRegistered(true);
       alert('User registered successfully');
     } catch (error) {
@@ -35,10 +40,34 @@ function App() {
   const handleLogin = async () => {
     try {
       const response = await axios.post('http://localhost:3001/login', { username, password });
-      alert(response.data);
+      const { accessToken } = response.data;
+      const decodedToken = JSON.parse(atob(accessToken.split('.')[1]));
+      setIsAuthenticated(true);
+      setUserRole(decodedToken.role);
+      alert('Login successful');
     } catch (error) {
       console.error('Error logging in:', error);
       alert('Invalid credentials');
+    }
+  };
+
+  const handleCreateEvent = async () => {
+    try {
+      if (userRole !== 'Faculty') {
+        alert('Only Faculty members can create events.');
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:3001/events', { title, date }, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      alert('Event created successfully');
+      setTitle('');
+      setDate('');
+    } catch (error) {
+      console.error('Error creating event:', error);
+      alert('Error creating event');
     }
   };
 
@@ -62,6 +91,25 @@ function App() {
         <button onClick={handleRegister}>Register</button>
         <button onClick={handleLogin}>Login</button>
       </div>
+
+      {isAuthenticated && userRole === 'Faculty' && (
+        <div>
+          <h2>Create New Event</h2>
+          <input
+            type="text"
+            placeholder="Event Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <input
+            type="datetime-local"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+          <button onClick={handleCreateEvent}>Create Event</button>
+        </div>
+      )}
+
       <Calendar />
     </div>
   );
