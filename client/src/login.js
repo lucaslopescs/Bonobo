@@ -1,6 +1,7 @@
 //verify does not work
 
 //variables to test verify
+/** 
 let userInput = "";
 let passInput = "";
 let correctUser = "test";
@@ -38,7 +39,7 @@ function verify(){
   }
   else{ 
     return console.log("wrong user");
-  } */
+  } 
 } 
 
 
@@ -56,3 +57,4 @@ function App() {
 }
 
 export default App;
+*/
