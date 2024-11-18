@@ -6,6 +6,11 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 dotenv.config();  // Load environment variables
 
+// Express setup
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+
 // MongoDB URI
 const dbURI = process.env.MONGODB_URI || 'mongodb+srv://Bonobo:BonoboBonobo@cluster27349.cp3yc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster27349';
 
@@ -37,7 +42,7 @@ async function run() {
 
 // Connect to user.js
 
-const User = require('./User'); // Import the User model
+const User = require('./user'); // Import the User model
 
 // Register route
 app.post('/register', async (req, res) => {
@@ -74,9 +79,6 @@ app.post('/login', async (req, res) => {
 // Run the connection function
 run().catch(console.dir);
 
-// Express setup
-const app = express();
-const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(express.json());

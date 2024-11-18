@@ -8,7 +8,9 @@ function App() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
+  const [userExists, setUserExists] = useState(false);
 
+  
   useEffect(() => {
     // Call the backend API
     axios.get('http://localhost:3001')
