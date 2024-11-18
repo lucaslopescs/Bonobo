@@ -48,23 +48,49 @@ app.post('/register', async (req, res) => {
   try {
     const { username, password, role } = req.body;
     
-    // Validate role
-    if (role && !['student', 'faculty'].includes(role)) {
-      return res.status(400).send('Invalid role specified');
-    }
+    console.log('Attempting to register user:', username);
     
+    // Check if user exists
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      console.log('Username already exists:', username);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Username already exists' 
+      });
+    }
+
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('Password hashed successfully');
+
+    // Create user
     const newUser = new User({
       username,
       password: hashedPassword,
-      role: role || 'student' // defaults to student if not specified
+      role: role || 'student'
     });
-    
+
+    // Save to database
     await newUser.save();
-    res.status(201).send('User registered successfully');
+    console.log('User saved to database:', username);
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user: {
+        username: newUser.username,
+        role: newUser.role
+      }
+    });
+
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).send('Error registering user');
+    console.error('Registration error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error registering user',
+      error: error.message
+    });
   }
 });
 
@@ -95,6 +121,43 @@ app.get('/', (req, res) => {
   res.send('School Event Manager API');
 });
 
+// DEBUG ROUTE - Remove in production
+app.get('/users', async (req, res) => {
+  try {
+    const users = await User.find({}, { password: 0 }); // Exclude passwords
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching users' });
+  }
+});
+
+// Test route to verify database connection and data
+app.get('/test-db', async (req, res) => {
+  try {
+    // Count users
+    const userCount = await User.countDocuments();
+    
+    // Get last 5 users (excluding passwords)
+    const recentUsers = await User.find({}, { password: 0 })
+      .sort({ createdAt: -1 })
+      .limit(5);
+    
+    res.json({
+      success: true,
+      message: 'Database connection successful',
+      userCount,
+      recentUsers
+    });
+  } catch (error) {
+    console.error('Database test error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database test failed',
+      error: error.message
+    });
+  }
+});
+
 // Run the connection function
 run().catch(console.dir);
 
@@ -107,8 +170,15 @@ app.listen(PORT, () => {
 mongoose.connect(dbURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-}).then(() => {
-  console.log('Connected to MongoDB');
-}).catch((error) => {
-  console.error('MongoDB connection error:', error);
+})
+.then(() => {
+  console.log('Connected to MongoDB Atlas successfully!');
+})
+.catch((err) => {
+  console.error('MongoDB Atlas connection error:', err);
+  process.exit(1);
+});
+
+mongoose.connection.on('error', err => {
+  console.error('MongoDB connection error:', err);
 });

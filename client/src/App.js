@@ -24,15 +24,24 @@ function App() {
 
   const handleRegister = async () => {
     try {
-      await axios.post('http://localhost:3001/register', { 
+      const response = await axios.post('http://localhost:3001/register', { 
         username, 
         password,
         role 
       });
-      alert('User registered successfully');
+
+      if (response.data.success) {
+        alert('Registration successful! Please login.');
+        // Clear the form
+        setUsername('');
+        setPassword('');
+        setRole('student');
+      } else {
+        alert(response.data.message);
+      }
     } catch (error) {
-      console.error('Error registering user:', error);
-      alert('Error registering user');
+      console.error('Registration error:', error);
+      alert(error.response?.data?.message || 'Error registering user');
     }
   };
 
