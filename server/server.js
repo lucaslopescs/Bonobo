@@ -7,8 +7,7 @@ const bcrypt = require('bcrypt');
 dotenv.config();  // Load environment variables
 
 // MongoDB URI
-const dbURI = process.env.MONGODB_URI || 'mongodb+srv://Bonobo:BonoboBonobo@cluster27349.cp3yc.mongodb.net/?retryWrites=true&w=majority&appName=Cluster27349';
-
+const dbURI = process.env.MONGODB_URI;
 if (!dbURI) {
   console.error('Error: MONGODB_URI is not defined in environment variables');
   process.exit(1);
@@ -39,12 +38,28 @@ async function run() {
 
 const User = require('./User'); // Import the User model
 
+// Express setup
+const app = express();
+app.use(express.json());
+app.use(cors());
+
 // Register route
 app.post('/register', async (req, res) => {
   try {
-    const { username, password } = req.body;
-    const hashedPassword = await bcrypt.hash(password, 10); // Hash the password
-    const newUser = new User({ username, password: hashedPassword });
+    const { username, password, role } = req.body;
+    
+    // Validate role
+    if (role && !['student', 'faculty'].includes(role)) {
+      return res.status(400).send('Invalid role specified');
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({
+      username,
+      password: hashedPassword,
+      role: role || 'student' // defaults to student if not specified
+    });
+    
     await newUser.save();
     res.status(201).send('User registered successfully');
   } catch (error) {
@@ -53,13 +68,19 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Login route
+// Login route - update to include role in response
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
+    
     if (user && await bcrypt.compare(password, user.password)) {
-      res.status(200).send('Login successful');
+      // Send role information with success response
+      res.status(200).json({
+        message: 'Login successful',
+        role: user.role,
+        username: user.username
+      });
     } else {
       res.status(401).send('Invalid credentials');
     }
@@ -69,25 +90,25 @@ app.post('/login', async (req, res) => {
   }
 });
 
-
-
-// Run the connection function
-run().catch(console.dir);
-
-// Express setup
-const app = express();
-const PORT = process.env.PORT || 3001;
-
-// Middleware
-app.use(express.json());
-app.use(cors());
-
 // Basic route
 app.get('/', (req, res) => {
   res.send('School Event Manager API');
 });
 
+// Run the connection function
+run().catch(console.dir);
+
 // Start server
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+});
+
+mongoose.connect(dbURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch((error) => {
+  console.error('MongoDB connection error:', error);
 });

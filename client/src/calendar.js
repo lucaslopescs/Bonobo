@@ -5,24 +5,45 @@ import dayGridPlugin from '@fullcalendar/daygrid'; // For month view
 import timeGridPlugin from '@fullcalendar/timegrid'; // For week and day views
 import interactionPlugin from '@fullcalendar/interaction'; // Enables drag and drop
 
-function Calendar() {
+function Calendar({ userRole }) {
   const [events, setEvents] = useState([
     { title: 'Meeting', date: '2024-10-24' },
     { title: 'Conference', date: '2024-10-27' },
     { title: 'Workshop', start: '2024-10-28T10:00:00', end: '2024-10-28T12:00:00' },
   ]);
 
+  const handleEventClick = (info) => {
+    if (userRole === 'faculty') {
+      // Faculty can edit/delete events
+      const action = window.confirm('Would you like to edit or delete this event?');
+      if (action) {
+        // Add edit/delete functionality
+      }
+    } else {
+      // Students can only view event details
+      alert(`Event: ${info.event.title}`);
+    }
+  };
+
   return (
     <div className="calendar-container">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth" // Set the initial view to a month calendar
-        events={events} // Pass the events array to the calendar
-        editable={true} // Enable event drag and drop
-        selectable={true} // Allow users to select time slots
-        eventClick={(info) => {
-          alert(`Event: ${info.event.title}`);
-        }}
+        initialView="dayGridMonth"
+        events={events}
+        editable={userRole === 'faculty'} // Only faculty can edit
+        selectable={userRole === 'faculty'} // Only faculty can select dates
+        eventClick={handleEventClick}
+        select={userRole === 'faculty' ? (selectInfo) => {
+          const title = prompt('Enter event title:');
+          if (title) {
+            setEvents([...events, {
+              title,
+              start: selectInfo.startStr,
+              end: selectInfo.endStr,
+            }]);
+          }
+        } : undefined}
       />
     </div>
   );

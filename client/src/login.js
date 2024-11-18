@@ -1,60 +1,46 @@
-//verify does not work
+import axios from 'axios';
+import React, {useEffect, useState} from "react"
 
-//variables to test verify
-/** 
 let userInput = "";
 let passInput = "";
 let correctUser = "test";
 let correctPass = "password";
 
-function SignInButton() {
-  return (
-    <button onClick={verify}>Login</button>
-  );
-}
+function Login(){
 
-function UsernameBox(){
-  return([
-  <label for="uname">Username: </label>,
-  userInput = <input type="text" id="uname" name="uname" placeholder="Enter username"></input>]
-  );
-}
-function PasswordBox(){
-  return([
-  <label for="pword">Password: </label>,
-  passInput = <input type="text" id="pword" name="pword" placeholder="Enter password"></input>]
-  );
-}
 
-function verify(){
-  console.log(userInput);
-  console.log(passInput);
- /**  if(userInput == correctUser){
-    if(passInput == correctPass){
-      return console.log("logging in");
-    }
-    else{
-      return console.log("wrong password");
-    }
+  const [email, setEmail]=useState('')
+  const [password, setPassword]=useState('')
+
+  async function submit(e){
+      e.preventDefault();
+
+      try{
+          await axios.post("http://localhost:3001/login",{
+          email,password
+          })
+
+      }
+
+      catch (error) {
+          console.log('Error:', error);
+      }
   }
-  else{ 
-    return console.log("wrong user");
-  } 
-} 
 
 
-function App() {
+
   return (
-    <div>
-        <h1>Welcome! Please enter your account information</h1>
-        <UsernameBox />
-        <div></div>
-        <PasswordBox />
-        <div></div>
-        <SignInButton />
-    </div>
-  );
+      <div className = "Login">
+          <h1>Login</h1>
+
+          <form onSubmit={submit}>
+              <input type = "email" onChange={(e)=>{setEmail(e.target.value)}} placeholder="Email" name="" id= "" />
+              <input type = "password" onChange={(e)=>{setPassword(e.target.value)}} placeholder="Password" name="" id= "" />
+              <button type="submit">Login</button>
+
+          </form>
+      </div>
+  )
 }
 
-export default App;
-*/
+export default Login;
