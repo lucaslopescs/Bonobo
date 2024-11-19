@@ -1,46 +1,67 @@
 import axios from 'axios';
-import React, {useEffect, useState} from "react"
+import React, { useState } from "react";
 
-let userInput = "";
-let passInput = "";
-let correctUser = "test";
-let correctPass = "password";
+function Login() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('student');
+  const [isRegistering, setIsRegistering] = useState(false);
 
-function Login(){
-
-
-  const [email, setEmail]=useState('')
-  const [password, setPassword]=useState('')
-
-  async function submit(e){
-      e.preventDefault();
-
-      try{
-          await axios.post("http://localhost:3001/login",{
-          email,password
-          })
-
-      }
-
-      catch (error) {
-          console.log('Error:', error);
-      }
+  async function handleSubmit(e) {
+    e.preventDefault();
+    
+    try {
+      const endpoint = isRegistering ? '/register' : '/login';
+      const response = await axios.post(`http://localhost:3001${endpoint}`, {
+        username,
+        password,
+        role: isRegistering ? role : undefined
+      });
+      
+      alert(response.data.message);
+      // You might want to redirect or update app state here
+    } catch (error) {
+      console.error('Error:', error);
+      alert(error.response?.data || 'An error occurred');
+    }
   }
 
-
-
   return (
-      <div className = "Login">
-          <h1>Login</h1>
-
-          <form onSubmit={submit}>
-              <input type = "email" onChange={(e)=>{setEmail(e.target.value)}} placeholder="Email" name="" id= "" />
-              <input type = "password" onChange={(e)=>{setPassword(e.target.value)}} placeholder="Password" name="" id= "" />
-              <button type="submit">Login</button>
-
-          </form>
-      </div>
-  )
+    <div className="Login">
+      <h1>{isRegistering ? 'Register' : 'Login'}</h1>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Username"
+          required
+        />
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          required
+        />
+        {isRegistering && (
+          <select 
+            value={role} 
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+          </select>
+        )}
+        <button type="submit">
+          {isRegistering ? 'Register' : 'Login'}
+        </button>
+      </form>
+      <button onClick={() => setIsRegistering(!isRegistering)}>
+        {isRegistering ? 'Switch to Login' : 'Switch to Register'}
+      </button>
+    </div>
+  );
 }
 
 export default Login;
