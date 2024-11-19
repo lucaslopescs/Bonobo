@@ -1,15 +1,15 @@
+import React, { useState } from 'react';
 import axios from 'axios';
-import React, { useState } from "react";
+import './Login.css';
 
-function Login() {
+function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('student');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [role, setRole] = useState('student');
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
     try {
       const endpoint = isRegistering ? '/register' : '/login';
       const response = await axios.post(`http://localhost:3001${endpoint}`, {
@@ -18,48 +18,79 @@ function Login() {
         role: isRegistering ? role : undefined
       });
       
-      alert(response.data.message);
-      // You might want to redirect or update app state here
+      if (response.data.success !== false) {
+        onLoginSuccess(response.data.role);
+      }
     } catch (error) {
       console.error('Error:', error);
       alert(error.response?.data || 'An error occurred');
     }
-  }
+  };
 
   return (
-    <div className="Login">
-      <h1>{isRegistering ? 'Register' : 'Login'}</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Username"
-          required
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-        />
-        {isRegistering && (
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <option value="student">Student</option>
-            <option value="faculty">Faculty</option>
-          </select>
-        )}
-        <button type="submit">
-          {isRegistering ? 'Register' : 'Login'}
-        </button>
-      </form>
-      <button onClick={() => setIsRegistering(!isRegistering)}>
-        {isRegistering ? 'Switch to Login' : 'Switch to Register'}
-      </button>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h2>{isRegistering ? 'Create Account' : 'Welcome Back'}</h2>
+          <p>{isRegistering ? 'Please fill in your details' : 'Please login to your account'}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+
+          {isRegistering && (
+            <div className="form-group">
+              <label>Role</label>
+              <select 
+                value={role} 
+                onChange={(e) => setRole(e.target.value)}
+                className="role-select"
+              >
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+              </select>
+            </div>
+          )}
+
+          <button type="submit" className="submit-button">
+            {isRegistering ? 'Create Account' : 'Login'}
+          </button>
+        </form>
+
+        <div className="auth-footer">
+          <p>
+            {isRegistering 
+              ? 'Already have an account?' 
+              : "Don't have an account?"}
+            <button 
+              className="toggle-button"
+              onClick={() => setIsRegistering(!isRegistering)}
+            >
+              {isRegistering ? 'Login' : 'Register'}
+            </button>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,54 @@
 .App {
-  text-align: center;
-  padding: 20px;
+  width: 100%;
+  min-height: 100vh;
 }
 
-h1 {
-  color: blue;
+.dashboard {
+  padding: 20px;
+  width: 100%;
+}
+
+.faculty-controls {
+  margin: 20px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.faculty-controls button {
+  padding: 10px 20px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.faculty-controls button:hover {
+  background: #357abd;
+}
+
+.logout-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.logout-button:hover {
+  background: #c82333;
+}
+
+h2 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+p {
+  color: #666;
+  margin-bottom: 20px;
 }

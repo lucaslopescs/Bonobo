@@ -1,137 +1,136 @@
-/* Modern login container with a gradient background */
-.login-container {
+.auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(120deg, #2980b9, #8e44ad);
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
-/* Card-style login box */
-.login-box {
+.auth-card {
   background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
   border-radius: 20px;
   padding: 40px;
-  box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
   width: 100%;
-  max-width: 400px;
-  transition: transform 0.3s ease;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  margin: auto;
 }
 
-.login-box:hover {
-  transform: translateY(-5px);
-}
-
-/* Stylish title */
-.login-title {
-  font-size: 2.2rem;
-  color: #2c3e50;
+.auth-header {
+  text-align: center;
   margin-bottom: 30px;
+}
+
+.auth-header h2 {
+  color: #1a1a1a;
+  font-size: 2rem;
+  margin-bottom: 10px;
   font-weight: 600;
-  position: relative;
 }
 
-.login-title:after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50px;
-  height: 3px;
-  background: linear-gradient(90deg, #2980b9, #8e44ad);
-  border-radius: 3px;
+.auth-header p {
+  color: #666;
+  font-size: 0.95rem;
 }
 
-/* Form styling */
-.login-form {
+.auth-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-/* Input field styling */
-.login-input {
-  width: 100%;
-  padding: 15px;
-  border: 2px solid #e0e0e0;
-  border-radius: 10px;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  color: #1a1a1a;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.form-group input,
+.form-group select {
+  padding: 12px 16px;
+  border: 2px solid #e1e1e1;
+  border-radius: 12px;
   font-size: 1rem;
   transition: all 0.3s ease;
+  background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #667eea;
   outline: none;
-  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
 }
 
-.login-input:focus {
-  border-color: #2980b9;
-  box-shadow: 0 0 0 3px rgba(41, 128, 185, 0.1);
-}
-
-/* Button styling */
-.login-button {
-  width: 100%;
-  padding: 15px;
-  background: linear-gradient(90deg, #2980b9, #8e44ad);
+.submit-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  padding: 14px;
   border: none;
-  border-radius: 10px;
-  font-size: 1.1rem;
+  border-radius: 12px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-top: 10px;
 }
 
-.login-button:hover {
-  background: linear-gradient(90deg, #3498db, #9b59b6);
+.submit-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
-.login-button:active {
+.submit-button:active {
   transform: translateY(0);
 }
 
-/* Footer styling */
-.login-footer {
+.auth-footer {
   margin-top: 25px;
-  color: #7f8c8d;
-  font-size: 0.95rem;
+  text-align: center;
+  color: #666;
 }
 
-.login-footer a {
-  color: #2980b9;
-  text-decoration: none;
+.toggle-button {
+  background: none;
+  border: none;
+  color: #667eea;
   font-weight: 600;
+  cursor: pointer;
+  padding: 0 5px;
+  font-size: 0.95rem;
   transition: color 0.3s ease;
 }
 
-.login-footer a:hover {
-  color: #8e44ad;
+.toggle-button:hover {
+  color: #764ba2;
   text-decoration: underline;
 }
 
-/* Add icons to input fields */
-.input-group {
-  position: relative;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.input-group i {
-  position: absolute;
-  left: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #95a5a6;
-}
-
-/* Responsive design */
-@media (max-width: 480px) {
-  .login-box {
-    padding: 30px 20px;
-  }
-
-  .login-title {
-    font-size: 1.8rem;
-  }
+.auth-card {
+  animation: fadeIn 0.6s ease-out;
 }
