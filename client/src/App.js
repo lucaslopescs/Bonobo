@@ -60,6 +60,16 @@ function App() {
     }
   };
 
+  // **Handle Logout Function**
+  const handleLogout = () => {
+    // Clear login states
+    setIsLoggedIn(false);
+    setUsername('');
+    setPassword('');
+    setUserRole(null);
+    alert('You have logged out successfully.');
+  };
+
   return (
     <div className="App">
       <h1>{message}</h1>
@@ -99,6 +109,10 @@ function App() {
             </div>
           )}
           <Calendar userRole={userRole} />
+          {/* Add the Logout Button */}
+          <button onClick={handleLogout} style={{ marginTop: '20px' }}>
+            Logout
+          </button>
         </div>
       )}
     </div>
