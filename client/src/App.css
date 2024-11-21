@@ -37,6 +37,9 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease;
+  position: absolute;
+  top: 20px;
+  right: 20px;
 }
 
 .logout-button:hover {
