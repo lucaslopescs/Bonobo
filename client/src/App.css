@@ -55,3 +55,18 @@ p {
   color: #666;
   margin-bottom: 20px;
 }
+.search-bar {
+  top: -17px;
+  height:40px;
+  width:22%;
+  position: relative;
+  left: 27%;
+}
+.search-button{
+  top: -17px;
+
+  height:40px;
+  width:50px;
+  position: relative;
+  left: 27%;
+}
