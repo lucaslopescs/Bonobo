@@ -32,7 +32,6 @@ function App() {
     setIsLoggedIn(true);
     setUserRole(response.role);
     setUsername(response.username);
-    alert(`Login successful. Welcome ${response.username}`);
   };
 
   const handleLogout = () => {
