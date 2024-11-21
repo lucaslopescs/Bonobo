@@ -2,7 +2,7 @@ import './App.css';
 import React, { useEffect, useState } from 'react';
 import Calendar from './calendar';
 import axios from 'axios';
-import Login from './Login';
+import Login from './login';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -21,7 +21,14 @@ function App() {
       });
   }, []);
 
+ // const handleLoginSuccess = (role, username) => {
+   // console.log(`User ${username} logged in as ${role}`);
+  //  setCurrentUser({ username, role });
+  //};
+
+
   const handleLoginSuccess = (response) => {
+    console.log(`User ${username} logged in as ${response.role}`);
     setIsLoggedIn(true);
     setUserRole(response.role);
     setUsername(response.username);
@@ -41,21 +48,24 @@ function App() {
         <Login onLoginSuccess={handleLoginSuccess} />
       ) : (
         <div className="dashboard">
-          <h2>Welcome, {username}!</h2>
-          <p>Role: {userRole}</p>
-          {userRole === 'faculty' && (
-            <div className="faculty-controls">
-              <button onClick={() => {/* Add event handler */}}>Create Event</button>
-              <button onClick={() => {/* Add event handler */}}>Edit Events</button>
+           <h2>Welcome, {username}!
+             <p>Role: {userRole}
+               <button 
+                 onClick={handleLogout} 
+                 className="logout-button"
+                 >
+                Logout
+                </button>
+             </p>
+           </h2>
+           {userRole === 'faculty' && (
+              <div className="faculty-controls">
+                <button onClick={() => {/* Add event handler */}}>Create Event</button>
+                <button onClick={() => {/* Add event handler */}}>Edit Events</button>
             </div>
-          )}
-          <Calendar userRole={userRole} />
-          <button 
-            onClick={handleLogout} 
-            className="logout-button"
-          >
-            Logout
-          </button>
+           )}
+
+          <Calendar userRole={userRole} /> 
         </div>
       )}
     </div>

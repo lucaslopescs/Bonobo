@@ -19,13 +19,15 @@ function Login({ onLoginSuccess }) {
       });
       
       if (response.data.success !== false) {
-        onLoginSuccess(response.data.role);
+        onLoginSuccess(response.data);
       }
     } catch (error) {
       console.error('Error:', error);
       alert(error.response?.data || 'An error occurred');
     }
   };
+
+
 
   return (
     <div className="auth-container">

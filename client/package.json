@@ -14,7 +14,7 @@
     "jest-dom": "^4.0.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-scripts": "^5.0.1",
+    "react-scripts": "5.0.1",
     "web-vitals": "^4.2.4",
     "webpack": "^5.96.1"
   },
