@@ -2,8 +2,9 @@
 
 import './App.css';
 import React, { useEffect, useState } from 'react';
-import Calendar from './Calendar';
+import Calendar from './calendar';
 import axios from 'axios';
+import FacultyComponent from './FacultyComponent';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -41,6 +42,7 @@ function App() {
     try {
       const response = await axios.post('http://localhost:3001/login', { username, password });
       const { accessToken } = response.data;
+      localStorage.setItem('token', accessToken); // Save token
       const decodedToken = JSON.parse(atob(accessToken.split('.')[1]));
       setIsAuthenticated(true);
       setUserRole(decodedToken.role);
@@ -92,23 +94,7 @@ function App() {
         <button onClick={handleLogin}>Login</button>
       </div>
 
-      {isAuthenticated && userRole === 'Faculty' && (
-        <div>
-          <h2>Create New Event</h2>
-          <input
-            type="text"
-            placeholder="Event Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <input
-            type="datetime-local"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-          <button onClick={handleCreateEvent}>Create Event</button>
-        </div>
-      )}
+      {isAuthenticated && userRole === 'Faculty' && <FacultyComponent userRole={userRole} />}
 
       <Calendar />
     </div>

@@ -7,6 +7,7 @@
     "concurrently": "^9.0.1",
     "cors": "^2.8.5",
     "express": "^4.21.1",
+    "jsonwebtoken": "^9.0.2",
     "nodemon": "^3.1.7",
     "sequelize": "^6.37.4",
     "sequelize-cli": "^6.6.2"
@@ -22,7 +23,6 @@
     "server": "cd server && nodemon server.js",
     "build": "react-scripts build",
     "eject": "react-scripts eject"
-    
   },
   "keywords": [],
   "author": "",

@@ -1,36 +1,47 @@
-// FacultyComponent.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Calendar from './Calendar';
 
-function FacultyComponent() {
+function FacultyComponent({ userRole }) {
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
   const [showForm, setShowForm] = useState(false);
 
   const handleCreateEvent = async () => {
     try {
-      console.log('Creating event:', title);
+      // Handling Undefined userRole
+      if (!userRole || userRole !== 'Faculty') {
+        alert('Only Faculty members can create events.');
+        return;
+      }
+
+      // Token Check Before Request
       const token = localStorage.getItem('token');
+      if (!token) {
+        alert('User not authenticated. Please log in.');
+        return;
+      }
+
       await axios.post('http://localhost:3001/events', { title, date }, {
-        headers: { 'Authorization': `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
       });
       alert('Event created successfully');
-      setTitle(''); // Reset the title field
-      setDate('');  // Reset the date field
-      setShowForm(false); // Hide the form after successful submission
+      setTitle('');
+      setDate('');
+      setShowForm(false);
     } catch (error) {
+      // Error Handling for Network Issues
       console.error('Error creating event:', error);
-      alert('Error creating event');
+      alert('Network issue or server error while creating the event');
     }
   };
 
   return (
-    <div className="faculty-component">
+    <div className="faculty-dashboard">
       <h2>Faculty Dashboard</h2>
       <button onClick={() => setShowForm(!showForm)}>
         {showForm ? 'Cancel' : 'Add New Event'}
       </button>
-
       {showForm && (
         <div className="create-event-form">
           <h3>Create New Event</h3>
@@ -48,6 +59,7 @@ function FacultyComponent() {
           <button onClick={handleCreateEvent}>Create Event</button>
         </div>
       )}
+      <Calendar />
     </div>
   );
 }

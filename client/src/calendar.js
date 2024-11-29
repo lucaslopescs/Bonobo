@@ -43,6 +43,20 @@ function Calendar() {
       alert('Error saving event');
     }
   };
+  
+  const handleEventDelete = async (eventId) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:3001/events/${eventId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert('Event deleted successfully');
+      setEvents(events.filter(event => event.id !== eventId));
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      alert('Error deleting event');
+    }
+  };
 
   return (
     <div className="calendar-container">

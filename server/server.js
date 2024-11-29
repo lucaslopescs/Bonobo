@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('./User');
 const Event = require('./Event'); // Import Event model
@@ -19,16 +19,23 @@ app.use(express.json());
 app.use(cors());
 
 // Middleware for authentication
+// Middleware for authentication
 function authenticateToken(req, res, next) {
-  const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
-  if (!token) return res.status(401).send('Access denied');
+  // More robust token extraction
+  const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'Access denied, token missing' });
+  }
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-    if (err) return res.status(403).send('Invalid token');
+    if (err) {
+      return res.status(403).json({ message: 'Invalid token' });
+    }
     req.user = user;
     next();
   });
 }
+
 
 // Register route
 app.post('/register', async (req, res) => {
@@ -44,8 +51,9 @@ app.post('/register', async (req, res) => {
     await newUser.save();
     res.status(201).send('User registered successfully');
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).send('Error registering user');
+    console.error('Detailed error:', error);
+res.status(500).json({ message: 'An error occurred', error: error.message });
+
   }
 });
 
@@ -66,8 +74,9 @@ app.post('/login', async (req, res) => {
       res.status(401).send('Invalid credentials');
     }
   } catch (error) {
-    console.error('Error logging in:', error);
-    res.status(500).send('Error logging in');
+    console.error('Detailed error:', error);
+    res.status(500).json({ message: 'An error occurred', error: error.message });
+
   }
 });
 
@@ -83,8 +92,9 @@ app.post('/events', authenticateToken, checkRole('Faculty'), async (req, res) =>
     await event.save();
     res.status(201).send('Event created successfully');
   } catch (error) {
-    console.error('Error creating event:', error);
-    res.status(500).send('Error creating event');
+    console.error('Detailed error:', error);
+    res.status(500).json({ message: 'An error occurred', error: error.message });
+
   }
 });
 
@@ -103,8 +113,9 @@ app.post('/events/:eventId/register', authenticateToken, checkRole('Student'), a
     await event.save();
     res.status(200).send('Successfully registered for the event');
   } catch (error) {
-    console.error('Error registering for event:', error);
-    res.status(500).send('Error registering for event');
+    console.error('Detailed error:', error);
+    res.status(500).json({ message: 'An error occurred', error: error.message });
+
   }
 });
 
@@ -114,8 +125,9 @@ app.get('/events', authenticateToken, async (req, res) => {
     const events = await Event.find().populate('faculty', 'username');
     res.status(200).json(events);
   } catch (error) {
-    console.error('Error fetching events:', error);
-    res.status(500).send('Error fetching events');
+    console.error('Detailed error:', error);
+    res.status(500).json({ message: 'An error occurred', error: error.message });
+
   }
 });
 
@@ -132,8 +144,9 @@ app.post('/events/calendar', authenticateToken, checkRole('Faculty'), async (req
     );
     res.status(201).json(createdEvents);
   } catch (error) {
-    console.error('Error saving events:', error);
-    res.status(500).send('Error saving events');
+    console.error('Detailed error:', error);
+    res.status(500).json({ message: 'An error occurred', error: error.message });
+
   }
 });
 
