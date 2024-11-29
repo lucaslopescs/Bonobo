@@ -119,7 +119,26 @@ app.get('/events', authenticateToken, async (req, res) => {
   }
 });
 
+app.post('/events/calendar', authenticateToken, checkRole('Faculty'), async (req, res) => {
+  try {
+    const events = req.body; // Expecting an array of events
+    const createdEvents = await Event.insertMany(
+      events.map(event => ({
+        title: event.title,
+        start: event.start,
+        end: event.end || event.start, // Handle events without an 'end' time
+        faculty: req.user._id,
+      }))
+    );
+    res.status(201).json(createdEvents);
+  } catch (error) {
+    console.error('Error saving events:', error);
+    res.status(500).send('Error saving events');
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+

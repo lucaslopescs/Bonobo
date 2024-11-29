@@ -1,49 +1,58 @@
-// src/components/Calendar.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import FullCalendar from '@fullcalendar/react'; // FullCalendar component
-import dayGridPlugin from '@fullcalendar/daygrid'; // For month view
-import timeGridPlugin from '@fullcalendar/timegrid'; // For week and day views
-import interactionPlugin from '@fullcalendar/interaction'; // Enables drag and drop
+import FullCalendar from '@fullcalendar/react';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
 
 function Calendar() {
-  const [events, setEvents] = useState([
-    { title: 'Meeting', date: '2024-10-24' },
-    { title: 'Conference', date: '2024-10-27' },
-    { title: 'Workshop', start: '2024-10-28T10:00:00', end: '2024-10-28T12:00:00' },
-  ]);
+  const [events, setEvents] = useState([]);
+
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        console.log('Fetching events for calendar');
         const token = localStorage.getItem('token');
         const response = await axios.get('http://localhost:3001/events', {
-          headers: { 'Authorization': `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         });
-        // Transform the response data to match the expected format for FullCalendar
-        const transformedEvents = response.data.map(event => ({
+        setEvents(response.data.map(event => ({
           title: event.title,
-          start: event.date,
-          end: event.end ? event.end : event.date,
-        }));
-        setEvents(transformedEvents);
-        console.log('Events fetched successfully:', response.data);
+          start: event.start,
+          end: event.end,
+        })));
       } catch (error) {
-        console.error('Error fetching events for calendar:', error);
+        console.error('Error fetching events:', error);
       }
     };
-
     fetchEvents();
   }, []);
+
+  const handleEventAdd = async (eventInfo) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        'http://localhost:3001/events/calendar',
+        [{ title: eventInfo.event.title, start: eventInfo.event.start, end: eventInfo.event.end }],
+        {
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        }
+      );
+      alert('Event saved successfully');
+    } catch (error) {
+      console.error('Error saving event:', error);
+      alert('Error saving event');
+    }
+  };
 
   return (
     <div className="calendar-container">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth" // Set the initial view to a month calendar
-        events={events} // Pass the events array to the calendar
-        editable={true} // Enable event drag and drop
-        selectable={true} // Allow users to select time slots
+        initialView="dayGridMonth"
+        events={events}
+        editable={true}
+        selectable={true}
+        eventAdd={(eventInfo) => handleEventAdd(eventInfo)}
         eventClick={(info) => {
           alert(`Event: ${info.event.title}`);
         }}
