@@ -1,16 +1,9 @@
 {
   "dependencies": {
-    "@fullcalendar/core": "^6.1.15",
-    "@fullcalendar/daygrid": "^6.1.15",
-    "@fullcalendar/react": "^6.1.15",
     "axios": "^1.7.7",
     "bcrypt": "^5.1.1",
-    "concurrently": "^9.0.1",
     "cors": "^2.8.5",
-    "express": "^4.21.1",
-    "nodemon": "^3.1.7",
-    "sequelize": "^6.37.4",
-    "sequelize-cli": "^6.6.2"
+    "express": "^4.21.1"
   },
   "name": "bonobo",
   "version": "1.0.0",
@@ -26,5 +19,9 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "nodemon": "^3.1.7"
+  }
 }

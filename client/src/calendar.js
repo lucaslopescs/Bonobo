@@ -4,6 +4,7 @@ import FullCalendar from '@fullcalendar/react'; // FullCalendar component
 import dayGridPlugin from '@fullcalendar/daygrid'; // For month view
 import timeGridPlugin from '@fullcalendar/timegrid'; // For week and day views
 import interactionPlugin from '@fullcalendar/interaction'; // Enables drag and drop
+import FacultyCalendar from './FacultyCalendar';
 
 function Calendar({ userRole }) {
   const [events, setEvents] = useState([

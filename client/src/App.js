@@ -1,8 +1,9 @@
 import './App.css';
 import React, { useEffect, useState } from 'react';
-import Calendar from './calendar';
+import FacultyCalendar from './FacultyCalendar';
+import Calendar from './calendar';  
 import axios from 'axios';
-import Login from './login';
+import Login from './Login';
 
 function App() {
   const [message, setMessage] = useState('');
@@ -20,12 +21,6 @@ function App() {
         console.error('Error fetching data:', error);
       });
   }, []);
-
- // const handleLoginSuccess = (role, username) => {
-   // console.log(`User ${username} logged in as ${role}`);
-  //  setCurrentUser({ username, role });
-  //};
-
 
   const handleLoginSuccess = (response) => {
     console.log(`User ${username} logged in as ${response.role}`);
@@ -47,24 +42,28 @@ function App() {
         <Login onLoginSuccess={handleLoginSuccess} />
       ) : (
         <div className="dashboard">
-           <h2>Welcome, {username}!
-             <p>Role: {userRole}
-               <button 
-                 onClick={handleLogout} 
-                 className="logout-button"
-                 >
+          <h2>
+            Welcome, {username}!
+            <p>
+              Role: {userRole}
+              <button 
+                onClick={handleLogout} 
+                className="logout-button"
+              >
                 Logout
-                </button>
-             </p>
-           </h2>
-           {userRole === 'faculty' && (
-              <div className="faculty-controls">
-                <button onClick={() => {/* Add event handler */}}>Create Event</button>
-                <button onClick={() => {/* Add event handler */}}>Edit Events</button>
-            </div>
-           )}
+              </button>
+            </p>
+          </h2>
 
-          <Calendar userRole={userRole} /> 
+          {/* Conditional Rendering for Calendars based on User Role */}
+          {userRole === 'faculty' ? (
+            <FacultyCalendar userRole={userRole} /> // Use FacultyCalendar for faculty
+          ) : (
+            <div>
+              <p>Welcome, student! You can view events but cannot create or edit them.</p>
+              <Calendar userRole={userRole} /> // Use simple Calendar for students
+            </div>
+          )}
         </div>
       )}
     </div>

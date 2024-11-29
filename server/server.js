@@ -1,9 +1,11 @@
-// server.js
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const Event = require('./Event');
+const User = require('./User'); // Import the User model
+
 dotenv.config();  // Load environment variables
 
 // MongoDB URI
@@ -25,7 +27,6 @@ const clientOptions = {
 // Connect to MongoDB
 async function run() {
   try {
-    // Use dbURI instead of uri
     await mongoose.connect(dbURI, clientOptions);
     console.log("Successfully connected to MongoDB!");
   } catch (err) {
@@ -33,10 +34,6 @@ async function run() {
     process.exit(1);  // Exit the process if the connection fails
   }
 }
-
-// Connect to user.js
-
-const User = require('./User'); // Import the User model
 
 // Express setup
 const app = express();
@@ -94,7 +91,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Login route - update to include role in response
+// Login route
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -108,27 +105,17 @@ app.post('/login', async (req, res) => {
         username: user.username
       });
     } else {
-      res.status(401).send('Invalid credentials');
+      res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
   } catch (error) {
     console.error('Error logging in:', error);
-    res.status(500).send('Error logging in');
+    res.status(500).json({ success: false, message: 'Error logging in', error: error.message });
   }
 });
 
 // Basic route
 app.get('/', (req, res) => {
   res.send('School Event Manager API');
-});
-
-// DEBUG ROUTE - Remove in production
-app.get('/users', async (req, res) => {
-  try {
-    const users = await User.find({}, { password: 0 }); // Exclude passwords
-    res.json(users);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching users' });
-  }
 });
 
 // Test route to verify database connection and data
@@ -158,6 +145,64 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
+// Create an event
+app.post('/events', async (req, res) => {
+  try {
+    const { title, start, end } = req.body;
+    const newEvent = new Event({ title, start, end });
+    await newEvent.save();
+    res.status(201).json(newEvent);
+  } catch (error) {
+    console.error('Error creating event:', error);
+    res.status(500).json({ message: 'Error creating event', error: error.message });
+  }
+});
+
+// Update an event
+app.put('/events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Received request to update event with ID:', id);
+    const updatedEvent = await Event.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedEvent) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    res.status(200).json(updatedEvent);
+  } catch (error) {
+    console.error('Error updating event:', error);
+    res.status(500).json({ message: 'Error updating event', error: error.message });
+  }
+});
+
+// Delete an event
+app.delete('/events/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log('Received request to delete event with ID:', id);
+    const deletedEvent = await Event.findByIdAndDelete(id);
+    if (!deletedEvent) {
+      console.log('Event not found:', id);
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    console.log('Event deleted successfully:', id);
+    res.status(200).json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting event:', error);
+    res.status(500).json({ message: 'Error deleting event', error: error.message });
+  }
+});
+
+// Fetch all events
+app.get('/events', async (req, res) => {
+  try {
+    const events = await Event.find({});
+    res.status(200).json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ message: 'Error fetching events', error: error.message });
+  }
+});
+
 // Run the connection function
 run().catch(console.dir);
 
@@ -171,13 +216,13 @@ mongoose.connect(dbURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => {
-  console.log('Connected to MongoDB Atlas successfully!');
-})
-.catch((err) => {
-  console.error('MongoDB Atlas connection error:', err);
-  process.exit(1);
-});
+  .then(() => {
+    console.log('Connected to MongoDB Atlas successfully!');
+  })
+  .catch((err) => {
+    console.error('MongoDB Atlas connection error:', err);
+    process.exit(1);
+  });
 
 mongoose.connection.on('error', err => {
   console.error('MongoDB connection error:', err);
