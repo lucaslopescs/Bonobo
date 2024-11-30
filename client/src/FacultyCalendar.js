@@ -11,19 +11,23 @@ function FacultyCalendar({ userRole }) {
   const [currentEvent, setCurrentEvent] = useState({ _id: '', title: '', start: '', end: '' });
   const [isEditing, setIsEditing] = useState(false);
 
+  // Function to fetch all events from the backend
+  const fetchEvents = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/events');
+      const formattedEvents = response.data.map(event => ({
+        ...event,
+        id: event._id, // Set the FullCalendar id as the MongoDB _id
+      }));
+      setEvents(formattedEvents);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
+
   useEffect(() => {
-    // Fetch existing events from the backend when the component mounts
-    axios.get('http://localhost:3001/events')
-      .then(response => {
-        const formattedEvents = response.data.map(event => ({
-          ...event,
-          id: event._id, // Set the FullCalendar id as the MongoDB _id
-        }));
-        setEvents(formattedEvents);
-      })
-      .catch(error => {
-        console.error('Error fetching events:', error);
-      });
+    // Fetch existing events when the component mounts
+    fetchEvents();
   }, []);
 
   const handleDateClick = (selectInfo) => {
@@ -61,13 +65,14 @@ function FacultyCalendar({ userRole }) {
           start: currentEvent.start,
           end: currentEvent.end,
         });
-        setEvents(events.map(event => (event._id === currentEvent._id ? response.data : event)));
+        console.log('Event updated successfully:', response.data);
       } else {
         // Create new event
         const response = await axios.post('http://localhost:3001/events', currentEvent);
-        setEvents([...events, response.data]);
+        console.log('Event created successfully:', response.data);
       }
       setShowEventModal(false);
+      fetchEvents(); // Fetch all events again to refresh
     } catch (error) {
       console.error('Error saving event:', error);
       alert(`An error occurred while saving the event: ${error.response ? error.response.data.message : error.message}`);
@@ -78,9 +83,9 @@ function FacultyCalendar({ userRole }) {
     try {
       console.log('Deleting event with ID:', currentEvent._id); // Log the event ID for debugging
       await axios.delete(`http://localhost:3001/events/${currentEvent._id}`);
-      setEvents(events.filter(event => event._id !== currentEvent._id));
+      console.log('Event deleted successfully:', currentEvent._id);
       setShowEventModal(false);
-      alert('Event deleted successfully');
+      fetchEvents(); // Fetch all events again to refresh
     } catch (error) {
       console.error('Error deleting event:', error);
       alert(`An error occurred while deleting the event: ${error.response ? error.response.data.message : error.message}`);

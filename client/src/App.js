@@ -23,7 +23,7 @@ function App() {
   }, []);
 
   const handleLoginSuccess = (response) => {
-    console.log(`User ${username} logged in as ${response.role}`);
+    console.log(`User ${response.username} logged in as ${response.role}`);
     setIsLoggedIn(true);
     setUserRole(response.role);
     setUsername(response.username);
@@ -60,8 +60,8 @@ function App() {
             <FacultyCalendar userRole={userRole} /> // Use FacultyCalendar for faculty
           ) : (
             <div>
-              <p>Welcome, student! You can view events but cannot create or edit them.</p>
-              <Calendar userRole={userRole} /> // Use simple Calendar for students
+              <p>Welcome, student! You can view events and register for them.</p>
+              <Calendar userRole={userRole} username={username} /> // Use simple Calendar for students with username
             </div>
           )}
         </div>

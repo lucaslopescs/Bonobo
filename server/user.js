@@ -20,9 +20,9 @@ const userSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now
-    }
+    },
+    registeredEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] // List of events the student is registered for
 });
-
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;

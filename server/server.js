@@ -203,6 +203,103 @@ app.get('/events', async (req, res) => {
   }
 });
 
+// Register for an event
+app.post('/events/:id/register', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username } = req.body;
+
+    console.log('Received request to register for event:', id, 'with username:', username);
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      console.log('User not found:', username);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const event = await Event.findById(id);
+    if (!event) {
+      console.log('Event not found:', id);
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    // Check if user is already registered for the event
+    if (event.registeredStudents.includes(user._id)) {
+      console.log('User already registered for the event:', username);
+      return res.status(400).json({ message: 'User already registered for the event' });
+    }
+
+    // Check if the event is already in the user's registeredEvents list
+    if (user.registeredEvents.includes(event._id)) {
+      console.log('Event already in user\'s registered events:', event._id);
+      return res.status(400).json({ message: 'User already registered for the event' });
+    }
+
+    // Register the student for the event
+    event.registeredStudents.push(user._id);
+    user.registeredEvents.push(event._id);
+
+    await event.save();
+    await user.save();
+
+    console.log('User successfully registered for the event:', user.username);
+    res.status(200).json({ message: 'User successfully registered for the event' });
+  } catch (error) {
+    console.error('Error registering for event:', error);
+    res.status(500).json({ message: 'Error registering for event', error: error.message });
+  }
+});
+
+// Unregister from an event
+app.delete('/events/:id/unregister', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username } = req.body;
+
+    console.log('Received request to unregister from event:', id, 'with username:', username);
+
+    const user = await User.findOne({ username });
+    if (!user) {
+      console.log('User not found:', username);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const event = await Event.findById(id);
+    if (!event) {
+      console.log('Event not found:', id);
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    event.registeredStudents = event.registeredStudents.filter(studentId => studentId.toString() !== user._id.toString());
+    user.registeredEvents = user.registeredEvents.filter(eventId => eventId.toString() !== event._id.toString());
+    await event.save();
+    await user.save();
+
+    console.log('User successfully unregistered from the event:', user.username);
+    res.status(200).json({ message: 'User successfully unregistered from the event' });
+  } catch (error) {
+    console.error('Error unregistering from event:', error);
+    res.status(500).json({ message: 'Error unregistering from event', error: error.message });
+  }
+});
+
+// Get all events a user is registered for
+app.get('/events/registered/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    const user = await User.findOne({ username }).populate('registeredEvents');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user.registeredEvents);
+  } catch (error) {
+    console.error('Error fetching registered events:', error);
+    res.status(500).json({ message: 'Error fetching registered events', error: error.message });
+  }
+});
+
 // Run the connection function
 run().catch(console.dir);
 
