@@ -179,12 +179,34 @@ p {
   padding: 0;
 }
 
-.registered-events-list li {
+.registered-event-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
   padding: 10px;
   background: #fff;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.event-details {
+  flex-grow: 1;
+}
+
+/* Unregister Button Styling */
+.unregister-button {
+  padding: 10px 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.unregister-button:hover {
+  background: #c82333;
 }
 
 /* Close Registered Events Button */

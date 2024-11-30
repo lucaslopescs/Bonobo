@@ -5,29 +5,55 @@ import './Login.css';
 function Login({ onLoginSuccess }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [role, setRole] = useState('student');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [showVerificationCodeInput, setShowVerificationCodeInput] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const endpoint = isRegistering ? '/register' : '/login';
-      const response = await axios.post(`http://localhost:3001${endpoint}`, {
-        username,
-        password,
-        role: isRegistering ? role : undefined
-      });
-      
-      if (response.data.success !== false) {
-        onLoginSuccess(response.data);
+      if (showVerificationCodeInput) {
+        // Verify the code
+        const response = await axios.post('http://localhost:3001/verify-code', {
+          email,
+          verificationCode,
+        });
+        alert(response.data.message);
+        setIsRegistering(false);
+        setShowVerificationCodeInput(false);
+      } else {
+        // Register or login the user
+        const endpoint = isRegistering ? '/register' : '/login';
+        const requestData = {
+          username,
+          password,
+          role: isRegistering ? role : undefined,
+        };
+        if (isRegistering) {
+          requestData.email = email; // Add email when registering
+        }
+
+        console.log('Sending registration/login request:', requestData);
+        const response = await axios.post(`http://localhost:3001${endpoint}`, requestData);
+
+        if (response.data.success !== false) {
+          if (isRegistering) {
+            alert(response.data.message);
+            setShowVerificationCodeInput(true);
+          } else {
+            onLoginSuccess(response.data);
+          }
+        } else {
+          alert(response.data.message);
+        }
       }
     } catch (error) {
       console.error('Error:', error);
-      alert(error.response?.data || 'An error occurred');
+      alert(error.response?.data.message || 'An error occurred');
     }
   };
-
-
 
   return (
     <div className="auth-container">
@@ -48,6 +74,19 @@ function Login({ onLoginSuccess }) {
               required
             />
           </div>
+
+          {isRegistering && (
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+          )}
 
           <div className="form-group">
             <label>Password</label>
@@ -74,8 +113,21 @@ function Login({ onLoginSuccess }) {
             </div>
           )}
 
+          {showVerificationCodeInput && (
+            <div className="form-group">
+              <label>Verification Code</label>
+              <input
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="Enter your verification code"
+                required
+              />
+            </div>
+          )}
+
           <button type="submit" className="submit-button">
-            {isRegistering ? 'Create Account' : 'Login'}
+            {showVerificationCodeInput ? 'Verify Code' : isRegistering ? 'Create Account' : 'Login'}
           </button>
         </form>
 
@@ -86,7 +138,10 @@ function Login({ onLoginSuccess }) {
               : "Don't have an account?"}
             <button 
               className="toggle-button"
-              onClick={() => setIsRegistering(!isRegistering)}
+              onClick={() => {
+                setIsRegistering(!isRegistering);
+                setShowVerificationCodeInput(false); // Reset the verification state
+              }}
             >
               {isRegistering ? 'Login' : 'Register'}
             </button>

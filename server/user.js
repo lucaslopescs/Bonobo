@@ -7,6 +7,11 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true
     },
+    email: {
+        type: String,
+        required: true,
+        unique: true
+    },
     password: {
         type: String,
         required: true
@@ -21,7 +26,12 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    registeredEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] // List of events the student is registered for
+    registeredEvents: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }], // List of events the student is registered for
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
+    verificationCode: String // Stores the verification code for email verification
 });
 
 const User = mongoose.model('User', userSchema);
