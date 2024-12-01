@@ -61,7 +61,7 @@ function App() {
           ) : (
             <div>
               <p>Welcome, student! You can view events and register for them.</p>
-              <Calendar userRole={userRole} username={username} /> // Use simple Calendar for students with username
+              <Calendar userRole={userRole} username={username} />
             </div>
           )}
         </div>

@@ -66,31 +66,56 @@ p {
 }
 
 /* Modal Styling */
-.event-modal {
+.event-details-modal, .search-results-modal, .registered-events-modal {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: white;
-  padding: 20px;
+  padding: 30px;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  z-index: 1001; /* Ensure it's above the overlay */
-  width: 400px;
+  z-index: 1001;
+  width: 500px;
   max-width: 90%;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.event-modal input {
-  display: block;
+.event-details-modal h3,
+.search-results-modal h3,
+.registered-events-modal h3 {
+  margin-bottom: 15px;
+}
+
+.event-details-modal p,
+.search-results-modal p,
+.registered-events-modal p {
+  color: #555;
   margin-bottom: 10px;
-  width: calc(100% - 16px);
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+}
+
+/* Event Details Modal Content Styling */
+.event-details-modal .event-details-content {
+  margin-bottom: 20px;
+}
+
+.event-details-modal .event-details-content h4 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.event-details-modal .event-details-content p {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 10px;
+  line-height: 1.5;
 }
 
 /* Modal Buttons Styling */
-.event-modal button {
+.event-details-modal button,
+.search-results-modal button,
+.registered-events-modal button {
   margin-right: 10px;
   padding: 10px 20px;
   cursor: pointer;
@@ -99,50 +124,125 @@ p {
   transition: background 0.3s ease;
 }
 
-.event-modal button.delete-button {
+/* Register Button Styling */
+.register-button {
+  padding: 10px 20px;
+  background: #28a745; /* Green color */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.register-button:hover {
+  background: #218838; /* Darker green for hover effect */
+}
+
+.event-details-modal button.unregister-button,
+.registered-events-modal button.unregister-button {
   background-color: #dc3545;
   color: white;
 }
 
-.event-modal button.delete-button:hover {
+.event-details-modal button.unregister-button:hover,
+.registered-events-modal button.unregister-button:hover {
   background-color: #c82333;
 }
 
-.event-modal button.cancel-button {
+.event-details-modal button.close-event-modal-button,
+.search-results-modal button.close-search-results-button,
+.registered-events-modal button.close-registered-button {
   background-color: #6c757d;
   color: white;
 }
 
-.event-modal button.cancel-button:hover {
+.event-details-modal button.close-event-modal-button:hover,
+.search-results-modal button.close-search-results-button:hover,
+.registered-events-modal button.close-registered-button:hover {
   background-color: #5a6268;
 }
 
-.event-modal button.save-button {
-  background-color: #28a745;
-  color: white;
-}
-
-.event-modal button.save-button:hover {
-  background-color: #218838;
-}
-
-/* Faculty Calendar Styles */
-.faculty-calendar {
-  position: relative;
-  margin-top: 40px;
-  width: 100%;
-  max-width: 1000px;
-}
-
 /* Modal Overlay Styling */
-.event-modal-overlay {
+.event-details-modal-overlay,
+.search-results-modal-overlay,
+.registered-events-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 1000; /* Ensure it's below the modal but above everything else */
+  z-index: 1000;
+}
+
+/* Event Card Styling */
+.event-card {
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.event-card h4 {
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.event-card p {
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.event-card div {
+  font-size: 0.9rem;
+  color: #777;
+}
+
+/* Search Bar Styling */
+.search-bar {
+  width: 100%;
+  max-width: 600px;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #e1e1e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.2);
+}
+
+.search-button {
+  margin-left: 10px;
+  padding: 10px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.search-button:hover {
+  background: #357abd;
 }
 
 /* View Registered Events Button */
@@ -174,17 +274,34 @@ p {
   margin-bottom: 10px;
 }
 
-.registered-events-list ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.registered-events-list li {
+.registered-event-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 10px;
   padding: 10px;
   background: #fff;
   border-radius: 4px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.event-details {
+  flex-grow: 1;
+}
+
+/* Unregister Button Styling */
+.unregister-button {
+  padding: 10px 20px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.unregister-button:hover {
+  background: #c82333;
 }
 
 /* Close Registered Events Button */
@@ -201,4 +318,112 @@ p {
 
 .close-registered-button:hover {
   background: #c82333;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modern Event Modal Styling */
+.modern-event-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  width: 450px;
+  max-width: 90%;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.modern-event-modal h3 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  color: #4a90e2;
+  text-align: center;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-content label {
+  font-weight: bold;
+  color: #444;
+}
+
+.modal-content input {
+  padding: 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.modal-content input:focus {
+  border-color: #4a90e2;
+  outline: none;
+  box-shadow: 0 0 5px rgba(74, 144, 226, 0.2);
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.modern-save-button {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modern-save-button:hover {
+  background-color: #218838;
+}
+
+.modern-delete-button {
+  background-color: #dc3545;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modern-delete-button:hover {
+  background-color: #c82333;
+}
+
+.modern-cancel-button {
+  background-color: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modern-cancel-button:hover {
+  background-color: #5a6268;
 }

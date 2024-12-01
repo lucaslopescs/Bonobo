@@ -3,7 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const Event = require('./Event');
+const Event = require('./event');
 const User = require('./User'); // Import the User model
 
 dotenv.config();  // Load environment variables
@@ -146,10 +146,19 @@ app.get('/test-db', async (req, res) => {
 });
 
 // Create an event
+// Create an event
 app.post('/events', async (req, res) => {
   try {
-    const { title, start, end } = req.body;
-    const newEvent = new Event({ title, start, end });
+    const { title, description, start, end } = req.body;
+
+    if (new Date(start) < new Date()) {
+      return res.status(400).json({ message: 'Cannot create an event in the past' });
+    }
+    if (new Date(start) >= new Date(end)) {
+      return res.status(400).json({ message: 'End date must be after start date' });
+    }
+
+    const newEvent = new Event({ title, description, start, end });
     await newEvent.save();
     res.status(201).json(newEvent);
   } catch (error) {
@@ -162,7 +171,15 @@ app.post('/events', async (req, res) => {
 app.put('/events/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Received request to update event with ID:', id);
+    const { start, end } = req.body;
+
+    if (new Date(start) < new Date()) {
+      return res.status(400).json({ message: 'Cannot update an event to start in the past' });
+    }
+    if (new Date(start) >= new Date(end)) {
+      return res.status(400).json({ message: 'End date must be after start date' });
+    }
+
     const updatedEvent = await Event.findByIdAndUpdate(id, req.body, { new: true });
     if (!updatedEvent) {
       return res.status(404).json({ message: 'Event not found' });
