@@ -22,7 +22,19 @@ function Login({ onLoginSuccess }) {
       const response = await axios.post(`http://localhost:3001${endpoint}`, payload);
       
       if (response.data.success !== false) {
-        onLoginSuccess(response.data);
+        if (isRegistering) {
+          alert('Account created successfully! Please login.');
+          setIsRegistering(false);
+          // Clear the form
+          setFirstName('');
+          setLastName('');
+          setEmail('');
+          setUsername('');
+          setPassword('');
+          setRole('student');
+        } else {
+          onLoginSuccess(response.data);
+        }
       }
     } catch (error) {
       console.error('Error:', error);
