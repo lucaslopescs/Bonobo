@@ -3,8 +3,11 @@ import axios from 'axios';
 import './Login.css';
 
 function Login({ onLoginSuccess }) {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [role, setRole] = useState('student');
 
@@ -12,22 +15,20 @@ function Login({ onLoginSuccess }) {
     e.preventDefault();
     try {
       const endpoint = isRegistering ? '/register' : '/login';
-      const response = await axios.post(`http://localhost:3001${endpoint}`, {
-        username,
-        password,
-        role: isRegistering ? role : undefined
-      });
+      const payload = isRegistering
+        ? { firstName, lastName, username, email, password, role }
+        : { username, password };
+      
+      const response = await axios.post(`http://localhost:3001${endpoint}`, payload);
       
       if (response.data.success !== false) {
         onLoginSuccess(response.data);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert(error.response?.data || 'An error occurred');
+      alert(error.response?.data.message || 'An error occurred');
     }
   };
-
-
 
   return (
     <div className="auth-container">
@@ -38,6 +39,41 @@ function Login({ onLoginSuccess }) {
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
+          {isRegistering && (
+            <>
+              <div className="form-group">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="Enter your first name"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Enter your last name"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+            </>
+          )}
+
           <div className="form-group">
             <label>Username</label>
             <input

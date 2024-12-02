@@ -10,9 +10,9 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
 
   useEffect(() => {
-    // Call the backend API
     axios.get('http://localhost:3001')
       .then(response => {
         setMessage(response.data);
@@ -27,12 +27,14 @@ function App() {
     setIsLoggedIn(true);
     setUserRole(response.role);
     setUsername(response.username);
+    setFirstName(response.firstName);
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUsername('');
     setUserRole(null);
+    setFirstName('');
     alert('You have logged out successfully.');
   };
 
@@ -43,7 +45,7 @@ function App() {
       ) : (
         <div className="dashboard">
           <h2>
-            Welcome, {username}!
+            Welcome, {firstName}!
             <p>
               Role: {userRole}
               <button 
@@ -55,9 +57,8 @@ function App() {
             </p>
           </h2>
 
-          {/* Conditional Rendering for Calendars based on User Role */}
           {userRole === 'faculty' ? (
-            <FacultyCalendar userRole={userRole} /> // Use FacultyCalendar for faculty
+            <FacultyCalendar userRole={userRole} />
           ) : (
             <div>
               <p>Welcome, student! You can view events and register for them.</p>

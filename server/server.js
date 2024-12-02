@@ -43,17 +43,17 @@ app.use(cors());
 // Register route
 app.post('/register', async (req, res) => {
   try {
-    const { username, password, role } = req.body;
-    
+    const { firstName, lastName, username, password, email, role } = req.body;
+
     console.log('Attempting to register user:', username);
     
     // Check if user exists
-    const existingUser = await User.findOne({ username });
+    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
-      console.log('Username already exists:', username);
+      console.log('Username or email already exists:', username);
       return res.status(400).json({ 
         success: false, 
-        message: 'Username already exists' 
+        message: 'Username or email already exists' 
       });
     }
 
@@ -63,20 +63,26 @@ app.post('/register', async (req, res) => {
 
     // Create user
     const newUser = new User({
+      firstName,
+      lastName,
       username,
+      email,
       password: hashedPassword,
       role: role || 'student'
     });
 
     // Save to database
-    await newUser.save();
-    console.log('User saved to database:', username);
+    const savedUser = await newUser.save();
+    console.log('User saved to database:', savedUser);
 
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
       user: {
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
         username: newUser.username,
+        email: newUser.email,
         role: newUser.role
       }
     });
@@ -95,14 +101,18 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await User.findOne({ username });
+
+    // Trim username to prevent errors due to spaces
+    const trimmedUsername = username.trim();
+    const user = await User.findOne({ username: trimmedUsername });
     
     if (user && await bcrypt.compare(password, user.password)) {
       // Send role information with success response
       res.status(200).json({
         message: 'Login successful',
         role: user.role,
-        username: user.username
+        username: user.username,
+        firstName: user.firstName // Added firstName to response for welcome message
       });
     } else {
       res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -145,7 +155,7 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
-// Create an event
+
 // Create an event
 app.post('/events', async (req, res) => {
   try {
