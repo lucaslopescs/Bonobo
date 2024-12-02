@@ -3,6 +3,7 @@ import axios from 'axios';
 import './Login.css';
 
 function Login({ onLoginSuccess }) {
+    document.title = 'Login Page';
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
