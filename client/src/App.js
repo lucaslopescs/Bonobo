@@ -6,6 +6,7 @@ import axios from 'axios';
 import Login from './Login';
 
 function App() {
+  document.title = 'Calendar Home';
   const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
