@@ -79,9 +79,8 @@ The School Event Manager is a web application designed to facilitate the managem
 - Kyle Mains
 - Amy'r Smith
 - Jennifer Moran
+- Peter Shelinsky
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 - Thanks to the contributors and the open-source community for their support and resources.

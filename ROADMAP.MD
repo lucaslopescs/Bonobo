@@ -68,5 +68,5 @@ The School Event Manager is a web application designed to facilitate the managem
 
 ### Contributors
 
-- **Team Members**: Lucas Lopes, Kyle Mains, Amy'r Smith, Jennifer Moran
+- **Team Members**: Lucas Lopes, Kyle Mains, Amy'r Smith, Jennifer Moran, Peter Shelinsky
 
