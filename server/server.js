@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const Event = require('./event');
 const User = require('./User');
@@ -37,17 +38,20 @@ app.use(cors());
 
 // Nodemailer transporter setup
 const transporter = nodemailer.createTransport({
-  service: 'Gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.EMAIL_USERNAME,
     pass: process.env.EMAIL_PASSWORD,
   },
 });
 
-// Store verification codes in memory (can be replaced with a dedicated collection)
+// Store pending verifications in memory
+// Structure: { [email]: { username, password, role, verificationCode } }
 const pendingVerifications = {};
 
-// Register route (only sends verification code)
+// Register route (sends verification code)
 app.post('/register', async (req, res) => {
   try {
     const { username, password, role, email } = req.body;
@@ -64,7 +68,7 @@ app.post('/register', async (req, res) => {
       });
     }
 
-    // Generate a verification code
+    // Generate a verification code (6-digit number)
     const verificationCode = crypto.randomInt(100000, 999999);
     pendingVerifications[email] = { username, password, role, verificationCode };
 
@@ -73,7 +77,7 @@ app.post('/register', async (req, res) => {
     // Send the verification code via email
     await transporter.sendMail({
       to: email,
-      subject: 'Email Verification Code',
+      subject: 'Your Verification Code',
       html: `<h2>Welcome to Bonobo!</h2><p>Your verification code is:</p><h3>${verificationCode}</h3>`,
     });
 
@@ -81,7 +85,7 @@ app.post('/register', async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Verification code sent. Please check your email to complete the registration process.',
+      message: 'Verification code sent. Please check your email and enter the code to verify your account.',
     });
 
   } catch (error) {
@@ -94,7 +98,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// Verify code and complete registration
+// Verify code route
 app.post('/verify-code', async (req, res) => {
   try {
     const { email, verificationCode } = req.body;
@@ -125,7 +129,7 @@ app.post('/verify-code', async (req, res) => {
     });
 
     await newUser.save();
-    delete pendingVerifications[email]; // Remove pending verification after completion
+    delete pendingVerifications[email]; // Remove pending verification
 
     res.status(201).json({
       success: true,
@@ -148,11 +152,17 @@ app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     
-    if (user && await bcrypt.compare(password, user.password)) {
-      if (!user.isVerified) {
-        return res.status(400).json({ success: false, message: 'Please verify your email before logging in' });
-      }
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
 
+    // Check if verified
+    if (!user.isVerified) {
+      return res.status(400).json({ success: false, message: 'Please verify your email before logging in' });
+    }
+
+    // Check password
+    if (await bcrypt.compare(password, user.password)) {
       res.status(200).json({
         message: 'Login successful',
         role: user.role,
@@ -167,7 +177,17 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Create an event
+// Event routes (unchanged)
+app.get('/events', async (req, res) => {
+  try {
+    const events = await Event.find();
+    res.status(200).json(events);
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ message: 'Error fetching events', error: error.message });
+  }
+});
+
 app.post('/events', async (req, res) => {
   try {
     const { title, start, end } = req.body;
@@ -180,7 +200,6 @@ app.post('/events', async (req, res) => {
   }
 });
 
-// Update an event
 app.put('/events/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -195,7 +214,6 @@ app.put('/events/:id', async (req, res) => {
   }
 });
 
-// Delete an event
 app.delete('/events/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -210,7 +228,6 @@ app.delete('/events/:id', async (req, res) => {
   }
 });
 
-// Register for an event
 app.post('/events/:id/register', async (req, res) => {
   try {
     const { id } = req.params;
@@ -243,7 +260,6 @@ app.post('/events/:id/register', async (req, res) => {
   }
 });
 
-// Unregister from an event
 app.delete('/events/:id/unregister', async (req, res) => {
   try {
     const { id } = req.params;
@@ -272,7 +288,6 @@ app.delete('/events/:id/unregister', async (req, res) => {
   }
 });
 
-// Get all events a user is registered for
 app.get('/events/registered/:username', async (req, res) => {
   try {
     const { username } = req.params;

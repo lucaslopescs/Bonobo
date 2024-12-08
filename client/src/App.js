@@ -33,7 +33,6 @@ function App() {
     setIsLoggedIn(false);
     setUsername('');
     setUserRole(null);
-  
   };
 
   return (
@@ -55,9 +54,8 @@ function App() {
             </p>
           </h2>
 
-          {/* Conditional Rendering for Calendars based on User Role */}
           {userRole === 'faculty' ? (
-            <FacultyCalendar userRole={userRole} /> // Use FacultyCalendar for faculty
+            <FacultyCalendar userRole={userRole} />
           ) : (
             <div>
               <p>Welcome, student! You can view events and register for them.</p>

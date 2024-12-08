@@ -48,7 +48,7 @@ function FacultyCalendar({ userRole }) {
 
     setIsEditing(true);
     setCurrentEvent({
-      _id: clickInfo.event.extendedProps._id, // Use the MongoDB _id here
+      _id: clickInfo.event.extendedProps._id,
       title: clickInfo.event.title,
       start: clickInfo.event.start ? clickInfo.event.start.toISOString().slice(0, 16) : '',
       end: clickInfo.event.end ? clickInfo.event.end.toISOString().slice(0, 16) : '',
@@ -60,16 +60,14 @@ function FacultyCalendar({ userRole }) {
     try {
       if (isEditing) {
         // Edit existing event
-        const response = await axios.put(`http://localhost:3001/events/${currentEvent._id}`, {
+        await axios.put(`http://localhost:3001/events/${currentEvent._id}`, {
           title: currentEvent.title,
           start: currentEvent.start,
           end: currentEvent.end,
         });
-        console.log('Event updated successfully:', response.data);
       } else {
         // Create new event
-        const response = await axios.post('http://localhost:3001/events', currentEvent);
-        console.log('Event created successfully:', response.data);
+        await axios.post('http://localhost:3001/events', currentEvent);
       }
       setShowEventModal(false);
       fetchEvents(); // Fetch all events again to refresh
@@ -81,9 +79,7 @@ function FacultyCalendar({ userRole }) {
 
   const handleEventDelete = async () => {
     try {
-      console.log('Deleting event with ID:', currentEvent._id); // Log the event ID for debugging
       await axios.delete(`http://localhost:3001/events/${currentEvent._id}`);
-      console.log('Event deleted successfully:', currentEvent._id);
       setShowEventModal(false);
       fetchEvents(); // Fetch all events again to refresh
     } catch (error) {

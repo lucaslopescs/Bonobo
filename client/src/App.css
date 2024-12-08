@@ -12,27 +12,7 @@
   padding: 20px;
   width: 100%;
   max-width: 1200px;
-}
-
-/* Faculty Controls Styles */
-.faculty-controls {
-  margin: 20px 0;
-  display: flex;
-  gap: 10px;
-}
-
-.faculty-controls button {
-  padding: 10px 20px;
-  background: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.faculty-controls button:hover {
-  background: #357abd;
+  position: relative; /* Needed for dropdown positioning */
 }
 
 /* Logout Button Styling */
@@ -49,7 +29,6 @@
   top: 20px;
   right: 20px;
 }
-
 .logout-button:hover {
   background: #c82333;
 }
@@ -59,13 +38,23 @@ h2 {
   color: #333;
   margin-bottom: 10px;
 }
-
 p {
   color: #666;
   margin-bottom: 20px;
 }
 
-/* Modal Styling */
+/* Modal Overlay (For modals and search results) */
+.event-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+/* Event Modal Styling */
 .event-modal {
   position: fixed;
   top: 50%;
@@ -75,7 +64,7 @@ p {
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  z-index: 1001; /* Ensure it's above the overlay */
+  z-index: 1001;
   width: 400px;
   max-width: 90%;
 }
@@ -89,7 +78,7 @@ p {
   border-radius: 4px;
 }
 
-/* Modal Buttons Styling */
+/* Modal Buttons */
 .event-modal button {
   margin-right: 10px;
   padding: 10px 20px;
@@ -97,52 +86,62 @@ p {
   border: none;
   border-radius: 4px;
   transition: background 0.3s ease;
+  margin-top: 10px;
 }
 
-.event-modal button.delete-button {
-  background-color: #dc3545;
-  color: white;
-}
-
-.event-modal button.delete-button:hover {
-  background-color: #c82333;
-}
-
-.event-modal button.cancel-button {
-  background-color: #6c757d;
-  color: white;
-}
-
-.event-modal button.cancel-button:hover {
-  background-color: #5a6268;
-}
-
-.event-modal button.save-button {
+.save-button {
   background-color: #28a745;
   color: white;
 }
-
-.event-modal button.save-button:hover {
+.save-button:hover {
   background-color: #218838;
 }
 
-/* Faculty Calendar Styles */
-.faculty-calendar {
-  position: relative;
-  margin-top: 40px;
-  width: 100%;
-  max-width: 1000px;
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+}
+.delete-button:hover {
+  background-color: #c82333;
 }
 
-/* Modal Overlay Styling */
-.event-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000; /* Ensure it's below the modal but above everything else */
+.cancel-button {
+  background-color: #6c757d;
+  color: white;
+}
+.cancel-button:hover {
+  background-color: #5a6268;
+}
+
+.unregister-button {
+  background-color: #dc3545;
+  color: white;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.unregister-button:hover {
+  background-color: #c82333;
+}
+
+.close-registered-button {
+  background-color: #dc3545;
+  color: white;
+  width: 100%;
+  text-align: center;
+  padding: 8px 0;
+  border: none;
+  border-radius: 4px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+.close-registered-button:hover {
+  background-color: #c82333;
 }
 
 /* View Registered Events Button */
@@ -156,71 +155,112 @@ p {
   cursor: pointer;
   transition: background 0.3s ease;
 }
-
 .view-registered-button:hover {
   background: #0056b3;
 }
 
-/* Registered Events List Styling */
+/* Registered Events Dropdown as a bottom section */
 .registered-events-list {
-  margin-top: 20px;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  max-height: 250px;
+  background: #fafafa;
+  border-top: 1px solid #ddd;
+  box-shadow: 0 -2px 6px rgba(0,0,0,0.1);
+  overflow-y: auto;
   padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1001;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  font-family: sans-serif;
+}
+
+.registered-events-list.open {
+  transform: translateY(0);
 }
 
 .registered-events-list h3 {
-  margin-bottom: 10px;
+  margin: 0 0 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
 }
 
 .registered-events-list ul {
   list-style-type: none;
   padding: 0;
+  margin: 0;
 }
 
 .registered-event-item {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 10px;
-  padding: 10px;
-  background: #fff;
+  padding: 8px;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  transition: background 0.3s ease;
+}
+
+.registered-event-item:hover {
+  background: #f0f0f0;
 }
 
 .event-details {
   flex-grow: 1;
+  margin-right: 10px;
+  font-size: 0.9rem;
+  color: #333;
 }
 
-/* Unregister Button Styling */
-.unregister-button {
-  padding: 10px 20px;
-  background: #dc3545;
+.event-details strong {
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: block;
+  color: #222;
+}
+
+/* Close button at bottom section */
+.close-registered-button {
+  background-color: #dc3545;
   color: white;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-
-.unregister-button:hover {
-  background: #c82333;
-}
-
-/* Close Registered Events Button */
-.close-registered-button {
+  width: 100%;
+  text-align: center;
+  padding: 8px 0;
   margin-top: 10px;
-  padding: 10px 20px;
-  background: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 8px;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
 .close-registered-button:hover {
-  background: #c82333;
+  background-color: #c82333;
+}
+
+/* Search Bar */
+.search-bar {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.search-input {
+  padding: 12px 16px;
+  border: 2px solid #e1e1e1;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  width: 100%;
+  max-width: 300px;
+}
+.search-input:focus {
+  border-color: #667eea;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
 }
