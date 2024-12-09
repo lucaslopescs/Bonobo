@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import axios from 'axios';
+
 
 function Calendar({ userRole, username }) {
   const [events, setEvents] = useState([]);
@@ -29,7 +30,7 @@ function Calendar({ userRole, username }) {
     }
   };
 
-  const fetchRegisteredEvents = async () => {
+  const fetchRegisteredEvents = useCallback(async () => {
     try {
       if (!username) {
         alert('Username not found. Please log in again.');
@@ -42,12 +43,12 @@ function Calendar({ userRole, username }) {
       console.error('Error fetching registered events:', error);
       alert(`An error occurred while fetching your registered events: ${error.response ? error.response.data.message : error.message}`);
     }
-  };
+  }, [username]); // Add any props or state that the function depends on
 
   useEffect(() => {
     fetchEvents();
     fetchRegisteredEvents(); // Fetch registered events on component mount
-  }, []);
+  },[fetchRegisteredEvents]);
 
   const handleSearchInputChange = (e) => {
     const term = e.target.value;
