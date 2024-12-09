@@ -1,6 +1,6 @@
 # School Event Manager
 
-# Version: Sprint 5
+### Version: Sprint 5
 
 ## Overview
 The School Event Manager is a web application designed to facilitate the management and participation in campus events for students and faculty. It incorporates modern development practices, ensuring scalability, maintainability, and user satisfaction.
