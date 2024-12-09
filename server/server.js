@@ -2,9 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs'); // Using bcryptjs for compatibility
+const nodemailer = require('nodemailer');
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const Event = require('./event');
-const User = require('./User'); // Import the User model
+const User = require('./user');
 
 dotenv.config();  // Load environment variables
 
@@ -15,76 +18,69 @@ if (!dbURI) {
   process.exit(1);
 }
 
-// Set Mongoose client options
-const clientOptions = { 
-  serverApi: { 
-    version: '1', 
-    strict: true, 
-    deprecationErrors: true 
-  } 
-};
-
-// Connect to MongoDB
-async function run() {
-  try {
-    await mongoose.connect(dbURI, clientOptions);
-    console.log("Successfully connected to MongoDB!");
-  } catch (err) {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);  // Exit the process if the connection fails
-  }
-}
+// Connect to MongoDB (no need for useNewUrlParser or useUnifiedTopology in Mongoose 6+)
+mongoose.connect(dbURI)
+  .then(() => {
+    console.log('Connected to MongoDB Atlas successfully!');
+  })
+  .catch((err) => {
+    console.error('MongoDB Atlas connection error:', err);
+    process.exit(1);
+  });
 
 // Express setup
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Register route
+// Nodemailer transporter setup
+const transporter = nodemailer.createTransport({
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
+// Store pending verifications in memory
+// Structure: { [email]: { username, password, role, firstName, lastName, verificationCode } }
+const pendingVerifications = {};
+
+// Register route (sends verification code)
 app.post('/register', async (req, res) => {
   try {
-    const { firstName, lastName, username, password, email, role } = req.body;
+    const { username, password, role, email, firstName, lastName } = req.body;
+    console.log('Register request received:', { username, email, role });
 
-    console.log('Attempting to register user:', username);
-    
-    // Check if user exists
-    const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
-      console.log('Username or email already exists:', username);
+      console.log('User already exists with email:', email);
       return res.status(400).json({ 
         success: false, 
-        message: 'Username or email already exists' 
+        message: 'Email already registered' 
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('Password hashed successfully');
+    // Generate a verification code (6-digit number)
+    const verificationCode = crypto.randomInt(100000, 999999);
+    pendingVerifications[email] = { username, password, role, firstName, lastName, verificationCode };
+    console.log('Verification code generated for:', email, 'Code:', verificationCode);
 
-    // Create user
-    const newUser = new User({
-      firstName,
-      lastName,
-      username,
-      email,
-      password: hashedPassword,
-      role: role || 'student'
+    // Send the verification code via email
+    await transporter.sendMail({
+      to: email,
+      subject: 'Your Verification Code',
+      html: `<h2>Welcome to Bonobo!</h2><p>Your verification code is:</p><h3>${verificationCode}</h3>`,
     });
 
-    // Save to database
-    const savedUser = await newUser.save();
-    console.log('User saved to database:', savedUser);
+    console.log('Verification email sent to:', email);
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      message: 'User registered successfully',
-      user: {
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        username: newUser.username,
-        email: newUser.email,
-        role: newUser.role
-      }
+      message: 'Verification code sent. Please check your email and enter the code to verify your account.',
     });
 
   } catch (error) {
@@ -92,7 +88,57 @@ app.post('/register', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error registering user',
-      error: error.message
+      error: error.message,
+    });
+  }
+});
+
+// Verify code route
+app.post('/verify-code', async (req, res) => {
+  try {
+    const { email, verificationCode } = req.body;
+
+    // Check if there's a pending registration for this email
+    if (!pendingVerifications[email]) {
+      return res.status(404).json({ message: 'No pending registration found. Please register again.' });
+    }
+
+    // Validate the verification code
+    if (pendingVerifications[email].verificationCode !== parseInt(verificationCode)) {
+      return res.status(400).json({ message: 'Invalid verification code' });
+    }
+
+    // Extract user details including firstName and lastName
+    const { username, password, role, firstName, lastName } = pendingVerifications[email];
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user in the database
+    const newUser = new User({
+      firstName,
+      lastName,
+      username,
+      email,
+      password: hashedPassword,
+      role: role || 'student',
+      isVerified: true,
+    });
+
+    await newUser.save();
+    delete pendingVerifications[email]; // Remove pending verification
+
+    res.status(201).json({
+      success: true,
+      message: 'Email verified and user registered successfully. You can now log in.',
+    });
+
+  } catch (error) {
+    console.error('Verification error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error verifying email',
+      error: error.message,
     });
   }
 });
@@ -101,18 +147,23 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-
-    // Trim username to prevent errors due to spaces
-    const trimmedUsername = username.trim();
-    const user = await User.findOne({ username: trimmedUsername });
+    const user = await User.findOne({ username });
     
-    if (user && await bcrypt.compare(password, user.password)) {
-      // Send role information with success response
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    // Check if verified
+    if (!user.isVerified) {
+      return res.status(400).json({ success: false, message: 'Please verify your email before logging in' });
+    }
+
+    // Check password
+    if (await bcrypt.compare(password, user.password)) {
       res.status(200).json({
         message: 'Login successful',
         role: user.role,
         username: user.username,
-        firstName: user.firstName // Added firstName to response for welcome message
       });
     } else {
       res.status(401).json({ success: false, message: 'Invalid credentials' });
@@ -123,52 +174,21 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Basic route
-app.get('/', (req, res) => {
-  res.send('School Event Manager API');
-});
-
-// Test route to verify database connection and data
-app.get('/test-db', async (req, res) => {
+// Event routes
+app.get('/events', async (req, res) => {
   try {
-    // Count users
-    const userCount = await User.countDocuments();
-    
-    // Get last 5 users (excluding passwords)
-    const recentUsers = await User.find({}, { password: 0 })
-      .sort({ createdAt: -1 })
-      .limit(5);
-    
-    res.json({
-      success: true,
-      message: 'Database connection successful',
-      userCount,
-      recentUsers
-    });
+    const events = await Event.find();
+    res.status(200).json(events);
   } catch (error) {
-    console.error('Database test error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Database test failed',
-      error: error.message
-    });
+    console.error('Error fetching events:', error);
+    res.status(500).json({ message: 'Error fetching events', error: error.message });
   }
 });
 
-
-// Create an event
 app.post('/events', async (req, res) => {
   try {
-    const { title, description, start, end } = req.body;
-
-    if (new Date(start) < new Date()) {
-      return res.status(400).json({ message: 'Cannot create an event in the past' });
-    }
-    if (new Date(start) >= new Date(end)) {
-      return res.status(400).json({ message: 'End date must be after start date' });
-    }
-
-    const newEvent = new Event({ title, description, start, end });
+    const { title, start, end } = req.body;
+    const newEvent = new Event({ title, start, end });
     await newEvent.save();
     res.status(201).json(newEvent);
   } catch (error) {
@@ -177,19 +197,9 @@ app.post('/events', async (req, res) => {
   }
 });
 
-// Update an event
 app.put('/events/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { start, end } = req.body;
-
-    if (new Date(start) < new Date()) {
-      return res.status(400).json({ message: 'Cannot update an event to start in the past' });
-    }
-    if (new Date(start) >= new Date(end)) {
-      return res.status(400).json({ message: 'End date must be after start date' });
-    }
-
     const updatedEvent = await Event.findByIdAndUpdate(id, req.body, { new: true });
     if (!updatedEvent) {
       return res.status(404).json({ message: 'Event not found' });
@@ -201,17 +211,13 @@ app.put('/events/:id', async (req, res) => {
   }
 });
 
-// Delete an event
 app.delete('/events/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('Received request to delete event with ID:', id);
     const deletedEvent = await Event.findByIdAndDelete(id);
     if (!deletedEvent) {
-      console.log('Event not found:', id);
       return res.status(404).json({ message: 'Event not found' });
     }
-    console.log('Event deleted successfully:', id);
     res.status(200).json({ message: 'Event deleted successfully' });
   } catch (error) {
     console.error('Error deleting event:', error);
@@ -219,57 +225,31 @@ app.delete('/events/:id', async (req, res) => {
   }
 });
 
-// Fetch all events
-app.get('/events', async (req, res) => {
-  try {
-    const events = await Event.find({});
-    res.status(200).json(events);
-  } catch (error) {
-    console.error('Error fetching events:', error);
-    res.status(500).json({ message: 'Error fetching events', error: error.message });
-  }
-});
-
-// Register for an event
 app.post('/events/:id/register', async (req, res) => {
   try {
     const { id } = req.params;
     const { username } = req.body;
 
-    console.log('Received request to register for event:', id, 'with username:', username);
-
     const user = await User.findOne({ username });
     if (!user) {
-      console.log('User not found:', username);
       return res.status(404).json({ message: 'User not found' });
     }
 
     const event = await Event.findById(id);
     if (!event) {
-      console.log('Event not found:', id);
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // Check if user is already registered for the event
-    if (event.registeredStudents.includes(user._id)) {
-      console.log('User already registered for the event:', username);
+    if (event.registeredStudents.includes(user._id) || user.registeredEvents.includes(event._id)) {
       return res.status(400).json({ message: 'User already registered for the event' });
     }
 
-    // Check if the event is already in the user's registeredEvents list
-    if (user.registeredEvents.includes(event._id)) {
-      console.log('Event already in user\'s registered events:', event._id);
-      return res.status(400).json({ message: 'User already registered for the event' });
-    }
-
-    // Register the student for the event
     event.registeredStudents.push(user._id);
     user.registeredEvents.push(event._id);
 
     await event.save();
     await user.save();
 
-    console.log('User successfully registered for the event:', user.username);
     res.status(200).json({ message: 'User successfully registered for the event' });
   } catch (error) {
     console.error('Error registering for event:', error);
@@ -277,32 +257,27 @@ app.post('/events/:id/register', async (req, res) => {
   }
 });
 
-// Unregister from an event
 app.delete('/events/:id/unregister', async (req, res) => {
   try {
     const { id } = req.params;
     const { username } = req.body;
 
-    console.log('Received request to unregister from event:', id, 'with username:', username);
-
     const user = await User.findOne({ username });
     if (!user) {
-      console.log('User not found:', username);
       return res.status(404).json({ message: 'User not found' });
     }
 
     const event = await Event.findById(id);
     if (!event) {
-      console.log('Event not found:', id);
       return res.status(404).json({ message: 'Event not found' });
     }
 
     event.registeredStudents = event.registeredStudents.filter(studentId => studentId.toString() !== user._id.toString());
     user.registeredEvents = user.registeredEvents.filter(eventId => eventId.toString() !== event._id.toString());
+
     await event.save();
     await user.save();
 
-    console.log('User successfully unregistered from the event:', user.username);
     res.status(200).json({ message: 'User successfully unregistered from the event' });
   } catch (error) {
     console.error('Error unregistering from event:', error);
@@ -310,7 +285,6 @@ app.delete('/events/:id/unregister', async (req, res) => {
   }
 });
 
-// Get all events a user is registered for
 app.get('/events/registered/:username', async (req, res) => {
   try {
     const { username } = req.params;
@@ -327,27 +301,8 @@ app.get('/events/registered/:username', async (req, res) => {
   }
 });
 
-// Run the connection function
-run().catch(console.dir);
-
 // Start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-});
-
-mongoose.connect(dbURI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => {
-    console.log('Connected to MongoDB Atlas successfully!');
-  })
-  .catch((err) => {
-    console.error('MongoDB Atlas connection error:', err);
-    process.exit(1);
-  });
-
-mongoose.connection.on('error', err => {
-  console.error('MongoDB connection error:', err);
 });

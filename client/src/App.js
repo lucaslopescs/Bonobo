@@ -6,14 +6,13 @@ import axios from 'axios';
 import Login from './Login';
 
 function App() {
-  document.title = 'Calendar Home';
   const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const [username, setUsername] = useState('');
-  const [firstName, setFirstName] = useState('');
 
   useEffect(() => {
+    // Call the backend API
     axios.get('http://localhost:3001')
       .then(response => {
         setMessage(response.data);
@@ -28,15 +27,12 @@ function App() {
     setIsLoggedIn(true);
     setUserRole(response.role);
     setUsername(response.username);
-    setFirstName(response.firstName);
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUsername('');
     setUserRole(null);
-    setFirstName('');
-    alert('You have logged out successfully.');
   };
 
   return (
@@ -46,7 +42,8 @@ function App() {
       ) : (
         <div className="dashboard">
           <h2>
-            Welcome, {firstName}!
+            Welcome, {username}!
+            <p>{message}</p>
             <p>
               Role: {userRole}
               <button 
@@ -63,7 +60,7 @@ function App() {
           ) : (
             <div>
               <p>Welcome, student! You can view events and register for them.</p>
-              <Calendar userRole={userRole} username={username} />
+              <Calendar userRole={userRole} username={username} /> 
             </div>
           )}
         </div>

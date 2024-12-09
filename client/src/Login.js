@@ -3,7 +3,6 @@ import axios from 'axios';
 import './Login.css';
 
 function Login({ onLoginSuccess }) {
-    document.title = 'Login Page';
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [username, setUsername] = useState('');
@@ -11,30 +10,53 @@ function Login({ onLoginSuccess }) {
   const [email, setEmail] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
   const [role, setRole] = useState('student');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [showVerificationCodeInput, setShowVerificationCodeInput] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const endpoint = isRegistering ? '/register' : '/login';
-      const payload = isRegistering
-        ? { firstName, lastName, username, email, password, role }
-        : { username, password };
-      
-      const response = await axios.post(`http://localhost:3001${endpoint}`, payload);
-      
-      if (response.data.success !== false) {
+      if (showVerificationCodeInput) {
+        // Verify the code
+        const response = await axios.post('http://localhost:3001/verify-code', {
+          email,
+          verificationCode,
+        });
+        alert(response.data.message);
+        // After successful verification, reset state and return to login
+        setIsRegistering(false);
+        setShowVerificationCodeInput(false);
+      } else {
+        // Register or login the user
+        const endpoint = isRegistering ? '/register' : '/login';
+
+        const requestData = {
+          username,
+          password,
+          role: isRegistering ? role : undefined,
+        };
+
+        // If registering, add additional fields
         if (isRegistering) {
-          alert('Account created successfully! Please login.');
-          setIsRegistering(false);
-          // Clear the form
-          setFirstName('');
-          setLastName('');
-          setEmail('');
-          setUsername('');
-          setPassword('');
-          setRole('student');
+          requestData.email = email;
+          requestData.firstName = firstName;
+          requestData.lastName = lastName;
+        }
+
+        console.log('Sending registration/login request:', requestData);
+        const response = await axios.post(`http://localhost:3001${endpoint}`, requestData);
+
+        if (response.data.success !== false) {
+          if (isRegistering) {
+            // Registration successful, instruct user to enter verification code
+            alert(response.data.message);
+            setShowVerificationCodeInput(true);
+          } else {
+            // Login successful
+            onLoginSuccess(response.data);
+          }
         } else {
-          onLoginSuccess(response.data);
+          alert(response.data.message);
         }
       }
     } catch (error) {
@@ -47,100 +69,137 @@ function Login({ onLoginSuccess }) {
     <div className="auth-container">
       <div className="auth-card">
         <div className="auth-header">
-          <h2>{isRegistering ? 'Create Account' : 'Welcome Back'}</h2>
-          <p>{isRegistering ? 'Please fill in your details' : 'Please login to your account'}</p>
+          <h2>
+            {showVerificationCodeInput 
+              ? 'Verify Your Email' 
+              : (isRegistering ? 'Create Account' : 'Welcome Back')
+            }
+          </h2>
+          <p>
+            {showVerificationCodeInput 
+              ? 'Please enter the verification code sent to your email' 
+              : (isRegistering ? 'Please fill in your details' : 'Please login to your account')
+            }
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {isRegistering && (
+          {!showVerificationCodeInput && (
             <>
               <div className="form-group">
-                <label>First Name</label>
+                <label>Username</label>
                 <input
                   type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="Enter your first name"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
                   required
                 />
               </div>
+
+              {isRegistering && (
+                <>
+                  <div className="form-group">
+                    <label>First Name</label>
+                    <input
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Enter your first name"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Last Name</label>
+                    <input
+                      type="text"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Enter your last name"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="form-group">
-                <label>Last Name</label>
+                <label>Password</label>
                 <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Enter your last name"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
                   required
                 />
               </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
+
+              {isRegistering && (
+                <div className="form-group">
+                  <label>Role</label>
+                  <select 
+                    value={role} 
+                    onChange={(e) => setRole(e.target.value)}
+                    className="role-select"
+                  >
+                    <option value="student">Student</option>
+                    <option value="faculty">Faculty</option>
+                  </select>
+                </div>
+              )}
             </>
           )}
 
-          <div className="form-group">
-            <label>Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              required
-            />
-          </div>
-
-          {isRegistering && (
+          {showVerificationCodeInput && (
             <div className="form-group">
-              <label>Role</label>
-              <select 
-                value={role} 
-                onChange={(e) => setRole(e.target.value)}
-                className="role-select"
-              >
-                <option value="student">Student</option>
-                <option value="faculty">Faculty</option>
-              </select>
+              <label>Verification Code</label>
+              <input
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="Enter your verification code"
+                required
+              />
             </div>
           )}
 
           <button type="submit" className="submit-button">
-            {isRegistering ? 'Create Account' : 'Login'}
+            {showVerificationCodeInput ? 'Verify Code' : (isRegistering ? 'Create Account' : 'Login')}
           </button>
         </form>
 
-        <div className="auth-footer">
-          <p>
-            {isRegistering 
-              ? 'Already have an account?' 
-              : "Don't have an account?"}
-            <button 
-              className="toggle-button"
-              onClick={() => setIsRegistering(!isRegistering)}
-            >
-              {isRegistering ? 'Login' : 'Register'}
-            </button>
-          </p>
-        </div>
+        {!showVerificationCodeInput && (
+          <div className="auth-footer">
+            <p>
+              {isRegistering 
+                ? 'Already have an account?' 
+                : "Don't have an account?"}
+              <button 
+                className="toggle-button"
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setShowVerificationCodeInput(false); // Reset any verification state
+                  setFirstName('');
+                  setLastName('');
+                  setEmail('');
+                }}
+              >
+                {isRegistering ? 'Login' : 'Register'}
+              </button>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
